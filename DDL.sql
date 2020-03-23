@@ -1,4 +1,3 @@
---TODO add constraints. 
 DROP TABLE account_holder;
 DROP TABLE account_withdraw;
 DROP TABLE account_deposit;
