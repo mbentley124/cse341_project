@@ -82,13 +82,13 @@ CREATE TABLE savings
 -- VENDOR TABLE
 CREATE TABLE vendor
     (v_id           VARCHAR (5),
-    vendor_name     VARCHAR (15),
+    vendor_name     VARCHAR (30),
     PRIMARY KEY (v_id));
 
 -- CREDIT/DEBIT CARD TABLES
 CREATE TABLE card
     (card_id            VARCHAR (5),
-    card_name           VARCHAR (15),
+    card_name           VARCHAR (30),
     card_opened_date    TIMESTAMP,
     PRIMARY KEY (card_id));
     
@@ -111,7 +111,7 @@ CREATE TABLE debit_card
     PRIMARY KEY (card_id),
     FOREIGN KEY (card_id) REFERENCES card
         ON DELETE CASCADE,
-    FOREIGN KEY (card_id) REFERENCES checking
+    FOREIGN KEY (acc_id) REFERENCES checking
         ON DELETE SET NULL);
 
 -- LOAN TABLES
@@ -120,6 +120,7 @@ CREATE TABLE loan
     loanholder_id       VARCHAR (5),
     loan_interest_rate  NUMBER,
     amount_loaned       NUMBER CHECK (amount_loaned > 0),
+    amount_due          NUMBER CHECK (amount_due > 0),
     monthly_payment     NUMBER CHECK (monthly_payment > 0),
     PRIMARY KEY (l_id),
     FOREIGN KEY (loanholder_id) REFERENCES customer (p_id)
