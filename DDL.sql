@@ -1,9 +1,9 @@
 DROP TABLE account_holder;
 DROP TABLE account_withdraw;
 DROP TABLE account_deposit;
-DROP TABLE vendor_purchase;
 DROP TABLE loan_payment;
 DROP TABLE credit_card_payment;
+DROP TABLE cash_transaction;
 DROP TABLE card_purchase;
 DROP TABLE secured_loan;
 DROP TABLE loan;
@@ -19,7 +19,6 @@ DROP TABLE customer;
 DROP TABLE person;
 DROP TABLE location;
 DROP TABLE transaction;
-
 
 
 -- TRANSACTION TABLE
@@ -138,9 +137,12 @@ CREATE TABLE secured_loan
 CREATE TABLE card_purchase
     (t_id           VARCHAR (7),
     card_id         VARCHAR (5),
+    v_id            VARCHAR (5),
     PRIMARY KEY (t_id),
     FOREIGN KEY (card_id) REFERENCES card
-        ON DELETE CASCADE,
+        ON DELETE SET NULL,
+    FOREIGN KEY (v_id) REFERENCES vendor
+        ON DELETE SET NULL,
     FOREIGN KEY (t_id) REFERENCES transaction
         ON DELETE CASCADE);
 
@@ -162,13 +164,13 @@ CREATE TABLE loan_payment
     FOREIGN KEY (t_id) REFERENCES transaction
         ON DELETE CASCADE);
 
-CREATE TABLE vendor_purchase
+CREATE TABLE cash_transaction
     (t_id           VARCHAR (7),
-    v_id            VARCHAR (5),
+    loc_id          VARCHAR (5),
     PRIMARY KEY (t_id),
-    FOREIGN KEY (v_id) REFERENCES vendor
-        ON DELETE CASCADE,
     FOREIGN KEY (t_id) REFERENCES transaction
+        ON DELETE CASCADE,
+    FOREIGN KEY (loc_id) REFERENCES location
         ON DELETE CASCADE);
 
 CREATE TABLE account_deposit
@@ -180,7 +182,7 @@ CREATE TABLE account_deposit
         ON DELETE CASCADE,
     FOREIGN KEY (acc_id) REFERENCES account
         ON DELETE CASCADE,
-    FOREIGN KEY (p_id) REFERENCES customer
+    FOREIGN KEY (p_id) REFERENCES teller
         ON DELETE CASCADE);
         
 CREATE TABLE account_withdraw
