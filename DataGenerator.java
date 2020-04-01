@@ -372,25 +372,36 @@ public class DataGenerator {
 					insertDebitCard(id, card_name, opened_timestamp, account_id, conn);
 				}
 			}
-			// TODO insert transactions.
 
+			// Inserts TOTAL_TRANSACTIONS amount of transactions
 			for (int i = 0; i < TOTAL_TRANSACTIONS; i++) {
 				double amount = random.nextDouble() * 500 + 1;
+				// Transactions happen between 2019 and today.
 				Timestamp transaction_timestamp = generateRandomTimestampBetweenYears(2019, 2020);
-				double rand = random.nextDouble();
+
 				String t_id = String.valueOf(i);
 				insertTransaction(t_id, amount, transaction_timestamp, conn);
+
+				// Values used on whether or not the transaction type has another side to it
+				// (where the money comes from)
 				Integer account_owner_id = null;
 				boolean insert_cash_side = false;
+
+				// Determines the transaction type.
+				double rand = random.nextDouble();
 				if (rand < 0.2) {
+					// Loan payment
 					int loan_id = random.nextInt(TOTAL_LOANS);
 					insertLoanPayment(t_id, String.valueOf(loan_id), conn);
 					if (random.nextDouble() < 0.5) {
+						// From cash
 						insert_cash_side = true;
 					} else {
+						// From account.
 						account_owner_id = loanholder_ids[loan_id];
 					}
 				} else if (rand < 0.4) {
+					// Credit card payment
 					int card_id = getRandomArrayVal(credit_card_holders.keySet().toArray(new Integer[0]));
 					insertCreditCardPayment(t_id, String.valueOf(card_id), conn);
 					if (random.nextDouble() < 0.5) {
@@ -399,36 +410,43 @@ public class DataGenerator {
 						account_owner_id = credit_card_holders.get(card_id);
 					}
 				} else if (rand < 0.6) {
+					// Credit card purchase. No other side to the transaction.
 					String card_id = String.valueOf(getRandomIndex(cardNames));
 					String vendor_id = String.valueOf(getRandomIndex(vendorNames));
 					insertCardPurchase(t_id, card_id, vendor_id, conn);
 				} else if (rand < 0.8) {
+					// Account deposit.
 					int acc_id = random.nextInt(TOTAL_ACCOUNTS);
 					int emp_id = getRandomArrayVal(employee_ids.toArray(new Integer[0]));
 					insertAccountDeposit(t_id, String.valueOf(acc_id), String.valueOf(emp_id), conn);
-
+					// Always uses cash.
 					insert_cash_side = true;
 				} else {
+					// Withdrawing money from an account. No need for other side of transaction
+					// since it has to be cash.
 					int acc_id = random.nextInt(TOTAL_ACCOUNTS);
 					int loc_id = getRandomIndex(locationNames);
 					insertAccountWithdraw(t_id, String.valueOf(acc_id), String.valueOf(loc_id), conn);
 				}
 
 				if (account_owner_id != null) {
+					// Finds an account that works with the person who did the transaction.
 					List<String> accounts = account_holder_ids.get(String.valueOf(account_owner_id));
 					if (accounts == null) {
+						// If no account exists use cash instead.
 						insert_cash_side = true;
 					} else {
+						// Insert account side transaciton.
 						String acc_id = getRandomArrayVal(accounts.toArray(new String[0]));
 						String loc_id = String.valueOf(getRandomIndex(locationNames));
 						insertAccountWithdraw(t_id, acc_id, loc_id, conn);
 					}
 				}
 				if (insert_cash_side) {
+					// Insert what location cash was deposited at for the transaction.
 					String loc_id = String.valueOf(getRandomIndex(locationNames));
 					insertCashTransaction(t_id, loc_id, conn);
 				}
-
 
 			}
 		} catch (Exception e) {
@@ -449,11 +467,12 @@ public class DataGenerator {
 		return random.nextInt(array.length);
 	}
 
-	// Generates random timestamp between two specified years.
+	// Generates random timestamp between two specified years. 2020 goes to today.
 	public static Timestamp generateRandomTimestampBetweenYears(int startYear, int endYear) {
 		Timestamp startTimestamp = Timestamp.valueOf(startYear + "-01-01 00:00:00");
 
 		Timestamp endTimestamp = Timestamp.valueOf(endYear + "-01-01 00:00:00");
+		// 2020 means it is today. Can't happen in the future.
 		if (endYear == 2020) {
 			endTimestamp = new Timestamp(new Date().getTime());
 		}
