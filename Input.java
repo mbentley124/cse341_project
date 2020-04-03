@@ -36,7 +36,7 @@ public class Input {
    * Sets the quitSet and backSet flags. Returns null if one of them are set (this
    * way the program won't silently fail. for better or worse).
    */
-  public static Double promptDouble(String text) {
+  public static Double promptDouble(String text, boolean only_above_zero) {
     quitSet = false;
     backSet = false;
 
@@ -51,10 +51,15 @@ public class Input {
     }
 
     try {
+      double out_double = Double.parseDouble(out);
+      if (only_above_zero && out_double <= 0) {
+        System.out.println("Please enter a value greater than 0.");
+        return promptDouble(text, only_above_zero);
+      }
       return Double.parseDouble(out);
     } catch (NumberFormatException e) {
       System.out.println("Thats not a number!");
-      return promptDouble(text);
+      return promptDouble(text, only_above_zero);
     }
   }
 
