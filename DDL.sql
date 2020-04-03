@@ -50,7 +50,7 @@ CREATE TABLE customer
 CREATE TABLE teller
     (p_id           NUMBER,
     teller_loc_id   NUMBER,
-    wage            NUMBER CHECK (wage > 0),
+    wage            NUMBER CHECK (wage >= 0),
     PRIMARY KEY (p_id),
     FOREIGN KEY (p_id) REFERENCES person
         ON DELETE CASCADE,
@@ -188,13 +188,13 @@ CREATE TABLE account_deposit
 CREATE TABLE account_withdraw
     (t_id           NUMBER,
     acc_id          NUMBER,
-    loc_id          NUMBER,
+    p_id          NUMBER,
     PRIMARY KEY (t_id),
     FOREIGN KEY (t_id) REFERENCES transaction
         ON DELETE CASCADE,
     FOREIGN KEY (acc_id) REFERENCES account
         ON DELETE CASCADE,
-    FOREIGN KEY (loc_id) REFERENCES location
+    FOREIGN KEY (p_id) REFERENCES teller
         ON DELETE CASCADE);
 
 CREATE TABLE account_holder

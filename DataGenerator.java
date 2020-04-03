@@ -7,6 +7,7 @@ import java.sql.SQLException;
 import java.sql.Statement;
 import java.sql.Timestamp;
 import java.util.ArrayList;
+import java.util.Arrays;
 import java.util.Calendar;
 import java.util.Date;
 import java.util.GregorianCalendar;
@@ -269,11 +270,11 @@ public class DataGenerator {
 		}
 	}
 
-	public static void insertAccountWithdraw(long t_id, long acc_id, long loc_id, Connection conn) {
+	public static void insertAccountWithdraw(long t_id, long acc_id, long teller_id, Connection conn) {
 		try (PreparedStatement insert = conn.prepareStatement("INSERT INTO account_withdraw VALUES (?, ?, ?)")) {
 			insert.setLong(1, t_id);
 			insert.setLong(2, acc_id);
-			insert.setLong(3, loc_id);
+			insert.setLong(3, teller_id);
 			insert.execute();
 		} catch (Exception e) {
 			e.printStackTrace();
@@ -310,11 +311,15 @@ public class DataGenerator {
 			}
 
 			List<Long> employee_ids = new ArrayList<>();
+			Long[] atm_ids = new Long[locationNames.length];
 			Long[] location_ids = new Long[locationNames.length];
+
 
 			// Insert locations and their tellers.
 			for (int i = 0; i < locationNames.length; i++) {
 				long loc_id = insertLocation(locationNames[i], conn);
+				long atm_id = insertEmployee(-1, locationNames[i] + " ATM", loc_id, 0, false, conn);
+				atm_ids[i] = atm_id;
 				location_ids[i] = loc_id;
 				if (i + 1 == locationNames.length) {
 					for (int x = i - 1; x < employeeNames.length; x++) {
@@ -330,6 +335,9 @@ public class DataGenerator {
 							.add(insertEmployee(emp_id, employeeNames[i - 1], loc_id, (random.nextDouble() + 1) * 10, i == 1, conn));
 				}
 			}
+			
+			List<Long> teller_ids = new ArrayList<>(employee_ids);
+			teller_ids.addAll(Arrays.asList(atm_ids));
 
 			// From loans id to loan holder id.
 			Map<Long, Long> loanholder_ids = new HashMap<>(); // long[] loanholder_ids = new long[TOTAL_LOANS];
@@ -474,8 +482,8 @@ public class DataGenerator {
 					// Withdrawing money from an account. No need for other side of transaction
 					// since it has to be cash.
 					long acc_id = getRandomArrayVal(account_ids);
-					long loc_id = getRandomArrayVal(location_ids);
-					insertAccountWithdraw(t_id, acc_id, loc_id, conn);
+					long teller_id = getRandomArrayVal(teller_ids.toArray(new Long[0]));
+					insertAccountWithdraw(t_id, acc_id, teller_id, conn);
 				}
 
 				if (account_owner_id != null) {
@@ -487,8 +495,8 @@ public class DataGenerator {
 					} else {
 						// Insert account side transaciton.
 						Long acc_id = getRandomArrayVal(accounts.toArray(new Long[0]));
-						Long loc_id = getRandomArrayVal(location_ids);
-						insertAccountWithdraw(t_id, acc_id, loc_id, conn);
+						Long teller_id = getRandomArrayVal(teller_ids.toArray(new Long[0]));
+						insertAccountWithdraw(t_id, acc_id, teller_id, conn);
 					}
 				}
 				if (insert_cash_side) {

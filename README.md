@@ -2,6 +2,12 @@
 
 ## About the bank
 
+An ATM is considered a teller, with a unique one for each location. 
+
+Although it is not required in the database, in order to promote ease of access every user must have a unique name. This allows users to enter their name to login instead of memorizing their user id. We have found users are less likely to forget their name for some reason. 
+
+Deposits are with a specific teller, but withdraws are with a specific location. This is since a teller is required for depositing, but only an ATM is required for withdraws (which all of our locations have). 
+
 Does not allow clients to pay off their loans with a credit card (we like to promote better financial decisions)
 
 Tellers can only work at one location
