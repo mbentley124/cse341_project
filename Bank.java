@@ -8,6 +8,7 @@ public class Bank {
 
   public static void main(String[] args) {
     try (Connection conn = ConnectionManager.connect()) {
+      conn.setAutoCommit(false);
       String input = Input.prompt("Hello! What interface would you like to use?",
           new String[] { "Account deposit/withdrawal" });
       if (input.equals("Account deposit/withdrawal")) {
