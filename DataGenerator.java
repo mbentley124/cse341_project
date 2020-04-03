@@ -213,21 +213,6 @@ public class DataGenerator {
 		return card_id;
 	}
 
-	public static long insertTransaction(double amount, Timestamp t_date, Connection conn) {
-		try (PreparedStatement insert_transaction = conn
-				.prepareStatement("INSERT INTO transaction (amount, t_date) VALUES (?, ?)", new String[] { "t_id" })) {
-			insert_transaction.setDouble(1, amount);
-			insert_transaction.setTimestamp(2, t_date);
-			insert_transaction.execute();
-			ResultSet results = insert_transaction.getGeneratedKeys();
-			results.next();
-			return results.getLong(1);
-		} catch (Exception e) {
-			e.printStackTrace();
-		}
-		return -1;
-	}
-
 	public static void insertCardPurchase(long t_id, long card_id, long v_id, Connection conn) {
 		try (PreparedStatement insert = conn.prepareStatement("INSERT INTO card_purchase VALUES (?, ?, ?)")) {
 			insert.setLong(1, t_id);
@@ -259,38 +244,6 @@ public class DataGenerator {
 		}
 	}
 
-	public static void insertAccountDeposit(long t_id, long acc_id, long teller_id, Connection conn) {
-		try (PreparedStatement insert = conn.prepareStatement("INSERT INTO account_deposit VALUES (?, ?, ?)")) {
-			insert.setLong(1, t_id);
-			insert.setLong(2, acc_id);
-			insert.setLong(3, teller_id);
-			insert.execute();
-		} catch (Exception e) {
-			e.printStackTrace();
-		}
-	}
-
-	public static void insertAccountWithdraw(long t_id, long acc_id, long teller_id, Connection conn) {
-		try (PreparedStatement insert = conn.prepareStatement("INSERT INTO account_withdraw VALUES (?, ?, ?)")) {
-			insert.setLong(1, t_id);
-			insert.setLong(2, acc_id);
-			insert.setLong(3, teller_id);
-			insert.execute();
-		} catch (Exception e) {
-			e.printStackTrace();
-		}
-	}
-
-	public static void insertCashTransaction(long t_id, long loc_id, Connection conn) {
-		try (PreparedStatement insert = conn.prepareStatement("INSERT INTO cash_transaction VALUES (?, ?)")) {
-			insert.setLong(1, t_id);
-			insert.setLong(2, loc_id);
-			insert.execute();
-		} catch (Exception e) {
-			e.printStackTrace();
-		}
-	}
-
 	public static final int TOTAL_LOANS = 10;
 	public static final int TOTAL_ACCOUNTS = 25;
 	public static final int TOTAL_TRANSACTIONS = 130;
@@ -314,7 +267,6 @@ public class DataGenerator {
 			Long[] atm_ids = new Long[locationNames.length];
 			Long[] location_ids = new Long[locationNames.length];
 
-
 			// Insert locations and their tellers.
 			for (int i = 0; i < locationNames.length; i++) {
 				long loc_id = insertLocation(locationNames[i], conn);
@@ -335,7 +287,7 @@ public class DataGenerator {
 							.add(insertEmployee(emp_id, employeeNames[i - 1], loc_id, (random.nextDouble() + 1) * 10, i == 1, conn));
 				}
 			}
-			
+
 			List<Long> teller_ids = new ArrayList<>(employee_ids);
 			teller_ids.addAll(Arrays.asList(atm_ids));
 
@@ -435,7 +387,7 @@ public class DataGenerator {
 				// Transactions happen between 2019 and today.
 				Timestamp transaction_timestamp = generateRandomTimestampBetweenYears(2019, 2020);
 
-				long t_id = insertTransaction(amount, transaction_timestamp, conn);
+				long t_id = ConnectionManager.insertTransaction(amount, transaction_timestamp, conn);
 
 				// Values used on whether or not the transaction type has another side to it
 				// (where the money comes from)
@@ -475,7 +427,7 @@ public class DataGenerator {
 
 					long acc_id = getRandomArrayVal(account_ids);
 					long emp_id = getRandomArrayVal(employee_ids.toArray(new Long[0]));
-					insertAccountDeposit(t_id, acc_id, emp_id, conn);
+					ConnectionManager.insertAccountDeposit(t_id, acc_id, emp_id, conn);
 					// Always uses cash.
 					insert_cash_side = true;
 				} else {
@@ -483,7 +435,7 @@ public class DataGenerator {
 					// since it has to be cash.
 					long acc_id = getRandomArrayVal(account_ids);
 					long teller_id = getRandomArrayVal(teller_ids.toArray(new Long[0]));
-					insertAccountWithdraw(t_id, acc_id, teller_id, conn);
+					ConnectionManager.insertAccountWithdraw(t_id, acc_id, teller_id, conn);
 				}
 
 				if (account_owner_id != null) {
@@ -496,13 +448,13 @@ public class DataGenerator {
 						// Insert account side transaciton.
 						Long acc_id = getRandomArrayVal(accounts.toArray(new Long[0]));
 						Long teller_id = getRandomArrayVal(teller_ids.toArray(new Long[0]));
-						insertAccountWithdraw(t_id, acc_id, teller_id, conn);
+						ConnectionManager.insertAccountWithdraw(t_id, acc_id, teller_id, conn);
 					}
 				}
 				if (insert_cash_side) {
 					// Insert what location cash was deposited at for the transaction.
 					Long loc_id = getRandomArrayVal(location_ids);
-					insertCashTransaction(t_id, loc_id, conn);
+					ConnectionManager.insertCashTransaction(t_id, loc_id, conn);
 				}
 
 			}
