@@ -11,11 +11,15 @@ import java.util.Date;
 import java.util.List;
 
 import database_structures.Account;
+import database_structures.Card;
 import database_structures.CheckingAccount;
+import database_structures.CreditCard;
 import database_structures.Customer;
+import database_structures.DebitCard;
 import database_structures.Location;
 import database_structures.SavingsAccount;
 import database_structures.Teller;
+import database_structures.Vendor;
 
 public class ConnectionManager {
 
@@ -57,6 +61,23 @@ public class ConnectionManager {
     return customer_list;
   }
 
+  public static List<Vendor> selectVendors(String vendor_name, Connection conn) {
+    List<Vendor> vendor_list = new ArrayList<>();
+    try (PreparedStatement select = conn.prepareStatement("SELECT * FROM vendor WHERE LOWER(vendor_name) LIKE ?")) {
+      select.setString(1, "%" + vendor_name.toLowerCase() + "%");
+
+      ResultSet results = select.executeQuery();
+
+      while (results.next()) {
+        vendor_list.add(new Vendor(results.getLong("v_id"), results.getString("vendor_name")));
+      }
+    } catch (SQLException e) {
+      // TODO exit quietly
+      e.printStackTrace();
+    }
+    return vendor_list;
+  }
+
   /**
    * Gets all the locations.
    * 
@@ -96,6 +117,38 @@ public class ConnectionManager {
       e.printStackTrace();
     }
     return teller_list;
+  }
+
+  
+  public static List<Card> selectCustomerCards(Connection conn, Customer customer) {
+    List<Card> card_list = new ArrayList<>();
+    try (PreparedStatement select = conn.prepareStatement("SELECT * FROM customer JOIN card on card_holder_id = customer.p_id LEFT OUTER JOIN credit_card using (card_id) LEFT OUTER JOIN debit_card using (card_id) WHERE card_holder_id = ?")) {
+      select.setLong(1, customer.getPId());
+      ResultSet cards = select.executeQuery();
+      while (cards.next()) {
+        long card_id = cards.getLong("card_id");
+        long card_holder_id = cards.getLong("card_holder_id");
+        String card_name = cards.getString("card_name");
+        Timestamp card_opened_date = cards.getTimestamp("card_opened_date");
+
+        Double credit_interest_rate = cards.getDouble("credit_interest_rate");
+        if (cards.wasNull()) {
+          // Debit Card
+          long acc_id = cards.getLong("acc_id");
+          card_list.add(new DebitCard(card_id, card_name, card_opened_date, acc_id));
+        } else {
+          // Credit Card
+          double credit_limit = cards.getDouble("credit_limit");
+          double balance_due = cards.getDouble("balance_due");
+          double rolling_balance = cards.getDouble("rolling_balance");
+          card_list.add(new CreditCard(card_id, card_name, card_opened_date, card_holder_id, credit_interest_rate, credit_limit, balance_due, rolling_balance));
+        }
+      }
+    } catch (SQLException e) {
+      // TODO exit quietly
+      e.printStackTrace();
+    }
+    return card_list;
   }
 
   /**
