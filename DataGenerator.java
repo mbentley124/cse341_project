@@ -15,6 +15,7 @@ import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
 import java.util.Random;
+import java.util.Map.Entry;
 
 public class DataGenerator {
 
@@ -168,11 +169,13 @@ public class DataGenerator {
 	static String[] cardNames = new String[] { "Corporate", "Schrute Bucks", "Stanley Nickels", "Unicorns", "Leprechauns",
 			"Dunder", "Casino Night", "Sabre", "Primary", "Secondary", "Special Projects", "Athlead", "Costco" };
 
-	public static long insertCard(String name, Timestamp opened_date, Connection conn) {
-		try (PreparedStatement insert_card = conn
-				.prepareStatement("INSERT INTO card (card_name, card_opened_date) VALUES (?, ?)", new String[] { "card_id" })) {
-			insert_card.setString(1, name);
-			insert_card.setTimestamp(2, opened_date);
+	public static long insertCard(String name, long card_holder_id, Timestamp opened_date, Connection conn) {
+		try (PreparedStatement insert_card = conn.prepareStatement(
+				"INSERT INTO card (card_holder_id, card_name, card_opened_date) VALUES (?, ?, ?)",
+				new String[] { "card_id" })) {
+			insert_card.setLong(1, card_holder_id);
+			insert_card.setString(2, name);
+			insert_card.setTimestamp(3, opened_date);
 			insert_card.execute();
 			ResultSet results = insert_card.getGeneratedKeys();
 			results.next();
@@ -183,8 +186,8 @@ public class DataGenerator {
 		return -1;
 	}
 
-	public static long insertDebitCard(String name, Timestamp opened_date, long account_id, Connection conn) {
-		long card_id = insertCard(name, opened_date, conn);
+	public static long insertDebitCard(String name, long card_holder_id, Timestamp opened_date, long account_id, Connection conn) {
+		long card_id = insertCard(name, card_holder_id, opened_date, conn);
 		try (PreparedStatement insert_debit_card = conn.prepareStatement("INSERT INTO debit_card VALUES (?, ?)")) {
 			insert_debit_card.setLong(1, card_id);
 			insert_debit_card.setLong(2, account_id);
@@ -197,15 +200,14 @@ public class DataGenerator {
 
 	public static long insertCreditCard(String name, Timestamp opened_date, long cardholder_id,
 			double credit_interest_rate, int credit_limit, double balance_due, double rolling_balance, Connection conn) {
-		long card_id = insertCard(name, opened_date, conn);
+		long card_id = insertCard(name, cardholder_id, opened_date, conn);
 		try (PreparedStatement insert_credit_card = conn
-				.prepareStatement("INSERT INTO credit_card VALUES (?, ?, ?, ?, ?, ?)")) {
+				.prepareStatement("INSERT INTO credit_card VALUES (?, ?, ?, ?, ?)")) {
 			insert_credit_card.setLong(1, card_id);
-			insert_credit_card.setLong(2, cardholder_id);
-			insert_credit_card.setDouble(3, credit_interest_rate);
-			insert_credit_card.setInt(4, credit_limit);
-			insert_credit_card.setDouble(5, balance_due);
-			insert_credit_card.setDouble(6, rolling_balance);
+			insert_credit_card.setDouble(2, credit_interest_rate);
+			insert_credit_card.setInt(3, credit_limit);
+			insert_credit_card.setDouble(4, balance_due);
+			insert_credit_card.setDouble(5, rolling_balance);
 			insert_credit_card.execute();
 		} catch (Exception e) {
 			e.printStackTrace();
@@ -377,7 +379,13 @@ public class DataGenerator {
 				} else {
 					// Debit card
 					long account_id = getRandomArrayVal(checking_account_ids.toArray(new Long[0]));
-					card_ids[i] = insertDebitCard(card_name, opened_timestamp, account_id, conn);
+					long accountholder_id = -1;
+					for (Entry<Long, List<Long>> entry : account_holder_ids.entrySet()) {
+						if (entry.getValue().contains(account_id)) {
+							accountholder_id = entry.getKey();
+						}
+					}
+					card_ids[i] = insertDebitCard(card_name, accountholder_id, opened_timestamp, account_id, conn);
 				}
 			}
 
