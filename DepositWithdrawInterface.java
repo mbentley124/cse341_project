@@ -1,5 +1,4 @@
 import java.sql.Connection;
-import java.sql.Timestamp;
 import java.util.List;
 
 import database_structures.Account;
@@ -8,6 +7,9 @@ import database_structures.Location;
 import database_structures.Teller;
 
 /**
+ * This was a real fancy diagram showing the path the user goes along when using
+ * the app. Then I hit the magic autoformat button...
+ * 
  * Navigation Layout: Customer Name Enter Account if Has Accounts Enter Location
  * Withdraw/Deposit if location supports both Go to enter teller name if
  * withdraw Go to deposit otherwise if deposit Deposit otherwise Size of Deposit
@@ -42,35 +44,12 @@ public class DepositWithdrawInterface {
    * Prompts the user until they enter a name that
    */
   public static void promptCustomerName(Connection conn) {
-    String user_name = Input.prompt("Enter your name: ");
+    Customer customer = Input.promptCustomer(conn);
+
     if (Input.isQuitSet() || Input.isBackSet()) {
       return;
-    }
-    List<Customer> customers = ConnectionManager.selectCustomers(user_name, conn);
-    int customer_count = customers.size();
-
-    if (customer_count == 0) {
-      System.out.println("No customers found with names like that");
-      promptCustomerName(conn);
-      return;
-    } else if (customer_count > 1) {
-      // Check if they entered an exact name.
-      for (Customer customer : customers) {
-        if (customer.getFullName().equals(user_name)) {
-          // This is the corresponding customer.
-          promptAccount(conn, customer);
-          return;
-        }
-      }
-      // They didn't say a specific enough name so list out the possible names and
-      // prompt them again.
-      System.out.println("Which of these names did you mean: ");
-      for (Customer customer : customers) {
-        System.out.println(customer.getFullName());
-      }
-      promptCustomerName(conn);
     } else {
-      promptAccount(conn, customers.get(0));
+      promptAccount(conn, customer);
     }
   }
 

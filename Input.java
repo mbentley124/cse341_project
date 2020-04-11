@@ -1,4 +1,9 @@
+import java.sql.Connection;
+import java.util.List;
 import java.util.Scanner;
+
+import database_structures.Customer;
+import database_structures.Vendor;
 
 public class Input {
 
@@ -28,6 +33,56 @@ public class Input {
       quitSet = true;
     }
     return out;
+  }
+
+  // I'm very pleased I have an excuse to use lambda expressions. They're very
+  // fun!
+  public interface Search<T> {
+    public List<T> find(String substring);
+  }
+
+  public static <T> T promptSearch(Search<T> search, String prompt_text, String empty_text) {
+    // Input.prompt sets quitSet, backSet flags for me.
+    String substring = Input.prompt(prompt_text);
+    if (Input.isQuitSet() || Input.isBackSet()) {
+      return null;
+    }
+    List<T> results = search.find(substring);
+    int count = results.size();
+
+    if (count == 0) {
+      System.out.println(empty_text);
+      return promptSearch(search, prompt_text, empty_text);
+    } else if (count > 1) {
+      // Check if they entered an exact match.
+      for (T possibility : results) {
+        if (possibility.toString().equals(substring)) {
+          // This is the corresponding outpu.
+          return possibility;
+        }
+      }
+      // They didn't say a specific enough substring so list out the possible values
+      // and prompt them again.
+      System.out.println("Which of these did you mean: ");
+      for (T result : results) {
+        System.out.println(result.toString());
+      }
+      return promptSearch(search, prompt_text, empty_text);
+    } else {
+      // Only one result.
+      System.out.println("You must have meant " + results.get(0).toString() + "! That's the only one that matches");
+      return results.get(0);
+    }
+  }
+
+  public static Vendor promptVendor(Connection conn) {
+    return promptSearch((substring) -> ConnectionManager.selectVendors(substring, conn), "Enter the vendor name: ",
+        "No vendors found with names like that");
+  }
+
+  public static Customer promptCustomer(Connection conn) {
+    return promptSearch((substring) -> ConnectionManager.selectCustomers(substring, conn), "Enter your name: ",
+        "No customers found with names like that");
   }
 
   /**
