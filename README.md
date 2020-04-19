@@ -2,6 +2,12 @@
 
 ## About the bank
 
+We prefer it if the customers use a beet farm as colatoral (for no reason in particular, just who doesn't like beets)
+
+A user can only have $1,000,000 due total for loans. This isn't a database constraint since we are willing to loan more money but that would require more vetting not possible within this interface (i.e. face to face)
+
+The cash a user receives from a loan is mailed to them as a check. (very secure)
+
 An ATM is considered a teller, with a unique one for each location. 
 
 Although it is not required in the database, in order to promote ease of access every user must have a unique name. This allows users to enter their name to login instead of memorizing their user id. We have found users are less likely to forget their name for some reason. 
@@ -16,10 +22,12 @@ We only allow deposits into accounts at locations that have a teller working the
 
 Tellers can be both employees and customers. 
 
+Card purchase is slightly different from other relationships (ternary) since you can only make purchases at vendors with a card and vendors can only have purchases by cards (obviously you can make purchases at vendors with cash too, but banks wouldn't be involved with that at all). 
+
 ## Useful Files
 
 ### DDL.sql
 Resets all of the tables, dropping the old versions and inserting the new ones. 
 
 ### DataGenerator.java
-Fills the table with semi-random data. All the names are predetermined however any number value is randomly determined. 
+Fills the table with semi-random data. All the names are predetermined however any number value is randomly determined. The randomness is seeded so it should be consistent as to the random values (however if something using random is changed then everything after it will become different then what it was before)
