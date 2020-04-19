@@ -11,6 +11,17 @@ BEGIN
 end;
 /
 
+CREATE OR REPLACE PROCEDURE creditCardPurchase (id in credit_card.card_id%type, amount in credit_card.rolling_balance%type)
+AS
+BEGIN
+    UPDATE credit_card c1
+    SET rolling_balance = (SELECT rolling_balance 
+                   FROM credit_card c2 
+                   WHERE c2.card_id = c1.card_id) + amount
+    WHERE c1.card_id = id;
+end;
+/
+
 
 CREATE OR REPLACE FUNCTION accountWithdraw (id IN account.acc_id%TYPE, amount IN account.balance%TYPE) 
 RETURN savings.penalty%TYPE

@@ -4,13 +4,15 @@ import java.sql.Timestamp;
 
 public abstract class Card {
   private long cardId;
+  private long cardHolderId;
   private String cardName;
   private Timestamp cardOpenedDate;
 
-  public Card(long card_id, String card_name, Timestamp card_opened_date) {
+  public Card(long card_id, String card_name, long card_holder_id, Timestamp card_opened_date) {
     this.cardId = card_id;
     this.cardName = card_name;
     this.cardOpenedDate = card_opened_date;
+    this.cardHolderId = card_holder_id;
   }
 
   /**
@@ -25,6 +27,13 @@ public abstract class Card {
    */
   public String getCardName() {
     return cardName;
+  }
+
+  /**
+   * @return the cardHolderId
+   */
+  public long getCardHolderId() {
+    return cardHolderId;
   }
 
   /**

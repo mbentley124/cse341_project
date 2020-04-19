@@ -104,33 +104,6 @@ public class DataGenerator {
 
 	static String[] collatoralNames = new String[] { "Farm", "Sprinkles", "Refridgerator", "House" };
 
-	public static long insertLoan(long loanholder_id, double interest_rate, int loan_amount, int amount_due,
-			int monthly_payment, String collatoral, Connection conn) {
-		try (PreparedStatement insert_loan = conn.prepareStatement(
-				"INSERT INTO loan (loanholder_id, loan_interest_rate, amount_loaned, amount_due, monthly_payment) VALUES (?, ?, ?, ?, ?)",
-				new String[] { "l_id" });
-				PreparedStatement insert_collatoral = conn.prepareStatement("INSERT INTO secured_loan VALUES (?, ?)")) {
-			insert_loan.setLong(1, loanholder_id);
-			insert_loan.setDouble(2, interest_rate);
-			insert_loan.setInt(3, loan_amount);
-			insert_loan.setInt(4, amount_due);
-			insert_loan.setInt(5, monthly_payment);
-			insert_loan.execute();
-			ResultSet results = insert_loan.getGeneratedKeys();
-			results.next();
-			long loan_id = results.getLong(1);
-			if (collatoral != null) {
-				insert_collatoral.setLong(1, loan_id);
-				insert_collatoral.setString(2, collatoral);
-				insert_collatoral.execute();
-			}
-			return loan_id;
-		} catch (Exception e) {
-			e.printStackTrace();
-		}
-		return -1;
-	}
-
 	public static long insertAccount(double balance, double interest_rate, Integer minimum_balance, Integer penalty,
 			long[] account_holders, Connection conn) {
 		try (
@@ -186,7 +159,8 @@ public class DataGenerator {
 		return -1;
 	}
 
-	public static long insertDebitCard(String name, long card_holder_id, Timestamp opened_date, long account_id, Connection conn) {
+	public static long insertDebitCard(String name, long card_holder_id, Timestamp opened_date, long account_id,
+			Connection conn) {
 		long card_id = insertCard(name, card_holder_id, opened_date, conn);
 		try (PreparedStatement insert_debit_card = conn.prepareStatement("INSERT INTO debit_card VALUES (?, ?)")) {
 			insert_debit_card.setLong(1, card_id);
@@ -213,17 +187,6 @@ public class DataGenerator {
 			e.printStackTrace();
 		}
 		return card_id;
-	}
-
-	public static void insertCardPurchase(long t_id, long card_id, long v_id, Connection conn) {
-		try (PreparedStatement insert = conn.prepareStatement("INSERT INTO card_purchase VALUES (?, ?, ?)")) {
-			insert.setLong(1, t_id);
-			insert.setLong(2, card_id);
-			insert.setLong(3, v_id);
-			insert.execute();
-		} catch (Exception e) {
-			e.printStackTrace();
-		}
 	}
 
 	public static void insertLoanPayment(long t_id, long l_id, Connection conn) {
@@ -304,11 +267,11 @@ public class DataGenerator {
 				}
 				long loanholder_id = getRandomArrayVal(customer_ids);
 				double loan_interest = random.nextDouble() * 10;
-				int amount_loaned = (int) (random.nextDouble() * 50000) + 5000;
-				int amount_due = amount_loaned - (int) (random.nextDouble() * 5000);
-				int monthly_payment = (int) (random.nextDouble() * 200) + 50;
-				long l_id = insertLoan(loanholder_id, loan_interest, amount_loaned, amount_due, monthly_payment, collatoral,
-						conn);
+				double amount_loaned = (random.nextDouble() * 50000) + 5000;
+				double amount_due = amount_loaned - (random.nextDouble() * 5000);
+				double monthly_payment = (random.nextDouble() * 200) + 50;
+				long l_id = ConnectionManager.insertLoan(loanholder_id, loan_interest, amount_loaned, amount_due,
+						monthly_payment, collatoral, conn);
 				loanholder_ids.put(l_id, loanholder_id);
 			}
 
@@ -429,7 +392,7 @@ public class DataGenerator {
 					Long card_id = getRandomArrayVal(card_ids);
 					Long vendor_id = getRandomArrayVal(vendor_ids);
 
-					insertCardPurchase(t_id, card_id, vendor_id, conn);
+					ConnectionManager.insertCardPurchase(t_id, card_id, vendor_id, conn);
 				} else if (rand < 0.8) {
 					// Account deposit.
 

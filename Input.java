@@ -85,6 +85,52 @@ public class Input {
         "No customers found with names like that");
   }
 
+  public interface CustomCondition {
+    public boolean isValidInput(String input);
+  }
+
+  public static String promptCustomString(String text, CustomCondition condition) {
+    quitSet = false;
+    backSet = false;
+
+    System.out.println(text);
+    String input = scan.nextLine();
+    if (isQuit(input)) {
+      quitSet = true;
+      return null;
+    } else if (isBack(input)) {
+      backSet = true;
+      return null;
+    } else if (condition.isValidInput(input)) {
+      return input;
+    } else {
+      System.out.println("Invalid input!");
+      return promptCustomString(text, condition);
+    }
+  }
+
+  public static Boolean promptBoolean(String text) {
+    quitSet = false;
+    backSet = false;
+
+    System.out.println(text + " [y/n]");
+    String input = scan.nextLine();
+    if (input.toLowerCase().equals("yes") || input.toLowerCase().equals("y")) {
+      return true;
+    } else if (input.toLowerCase().equals("no") || input.toLowerCase().equals("n")) {
+      return false;
+    } else if (isBack(input)) {
+      backSet = true;
+      return null;
+    } else if (isQuit(input)) {
+      quitSet = true;
+      return null;
+    } else {
+      System.out.println("Please enter yes or no");
+      return promptBoolean(text);
+    }
+  }
+
   /**
    * Requests double value input.
    * 

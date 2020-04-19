@@ -4,27 +4,23 @@ import java.sql.Timestamp;
 
 public class CreditCard extends Card {
 
-  long cardHolderId;
-  double creditInterestRate;
-  double creditLimit;
-  double balanceDue;
-  double rollingBalance;
+  private double creditInterestRate;
+  private double creditLimit;
+  private double balanceDue;
+  private double rollingBalance;
 
   public CreditCard(long card_id, String card_name, Timestamp card_opened_date, long card_holder_id,
       double credit_interest_rate, double credit_limit, double balance_due, double rolling_balance) {
-    super(card_id, card_name, card_opened_date);
-    this.cardHolderId = card_holder_id;
+    super(card_id, card_name, card_holder_id, card_opened_date);
     this.creditInterestRate = credit_interest_rate;
     this.creditLimit = credit_limit;
     this.balanceDue = balance_due;
     this.rollingBalance = rolling_balance;
   }
 
-  /**
-   * @return the cardHolderId
-   */
-  public long getCardHolderId() {
-    return cardHolderId;
+  public double adjustRollingBalance(double adjustment) {
+    this.rollingBalance += adjustment;
+    return this.getRollingBalance();
   }
 
   /**

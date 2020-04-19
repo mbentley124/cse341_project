@@ -5,8 +5,8 @@ import java.sql.Timestamp;
 public class DebitCard extends Card {
   private long accId;
 
-  public DebitCard(long card_id, String card_name, Timestamp card_opened_date, long acc_id) {
-    super(card_id, card_name, card_opened_date);
+  public DebitCard(long card_id, String card_name, long card_holder_id, Timestamp card_opened_date, long acc_id) {
+    super(card_id, card_name, card_holder_id, card_opened_date);
     this.accId = acc_id;
   }
 

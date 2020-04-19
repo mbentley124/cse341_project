@@ -35,6 +35,54 @@ public class ConnectionManager {
   }
 
   /**
+   * Gets the total balance of all the accounts the customer has with the bank.
+   * 
+   * @param conn     Database connection
+   * @param customer The customer to get the net
+   * @return The net balance of all the customers accounts. Null if failed to get.
+   */
+  public static Double getNetCustomerAccountBalance(Connection conn, Customer customer) {
+    try (PreparedStatement statement = conn.prepareStatement(
+        "SELECT SUM(balance) net_balance FROM account JOIN account_holder USING (acc_id) WHERE p_id = ?")) {
+      statement.setLong(1, customer.getPId());
+      ResultSet res = statement.executeQuery();
+      if (res.next()) {
+        return res.getDouble("net_balance");
+      } else {
+        return 0d;
+      }
+    } catch (SQLException e) {
+      // TODO
+      e.printStackTrace();
+    }
+    return null;
+  }
+
+  /**
+   * Gets the total amount due for all the loans for a customer of the bank.
+   * 
+   * @param conn     Database connection
+   * @param customer The customer to get the net
+   * @return The net loan amount of all a customers loans. Null if failed to get.
+   */
+  public static Double getNetCustomerLoanAmountDue(Connection conn, Customer customer) {
+    try (PreparedStatement statement = conn
+        .prepareStatement("SELECT SUM(amount_due) net_due FROM loan WHERE loanholder_id = ?")) {
+      statement.setLong(1, customer.getPId());
+      ResultSet res = statement.executeQuery();
+      if (res.next()) {
+        return res.getDouble("net_due");
+      } else {
+        return 0d;
+      }
+    } catch (SQLException e) {
+      // TODO
+      e.printStackTrace();
+    }
+    return null;
+  }
+
+  /**
    * Gets all the customers with user name as a substring.
    * 
    * @param user_name Name or partial name of customer.
@@ -119,10 +167,10 @@ public class ConnectionManager {
     return teller_list;
   }
 
-  
   public static List<Card> selectCustomerCards(Connection conn, Customer customer) {
     List<Card> card_list = new ArrayList<>();
-    try (PreparedStatement select = conn.prepareStatement("SELECT * FROM customer JOIN card on card_holder_id = customer.p_id LEFT OUTER JOIN credit_card using (card_id) LEFT OUTER JOIN debit_card using (card_id) WHERE card_holder_id = ?")) {
+    try (PreparedStatement select = conn.prepareStatement(
+        "SELECT * FROM customer JOIN card on card_holder_id = customer.p_id LEFT OUTER JOIN credit_card using (card_id) LEFT OUTER JOIN debit_card using (card_id) WHERE card_holder_id = ?")) {
       select.setLong(1, customer.getPId());
       ResultSet cards = select.executeQuery();
       while (cards.next()) {
@@ -135,13 +183,14 @@ public class ConnectionManager {
         if (cards.wasNull()) {
           // Debit Card
           long acc_id = cards.getLong("acc_id");
-          card_list.add(new DebitCard(card_id, card_name, card_opened_date, acc_id));
+          card_list.add(new DebitCard(card_id, card_name, card_holder_id, card_opened_date, acc_id));
         } else {
           // Credit Card
           double credit_limit = cards.getDouble("credit_limit");
           double balance_due = cards.getDouble("balance_due");
           double rolling_balance = cards.getDouble("rolling_balance");
-          card_list.add(new CreditCard(card_id, card_name, card_opened_date, card_holder_id, credit_interest_rate, credit_limit, balance_due, rolling_balance));
+          card_list.add(new CreditCard(card_id, card_name, card_opened_date, card_holder_id, credit_interest_rate,
+              credit_limit, balance_due, rolling_balance));
         }
       }
     } catch (SQLException e) {
@@ -189,19 +238,99 @@ public class ConnectionManager {
     return account_list;
   }
 
+  public static boolean purchaseCreditCard(double amount, Customer customer, CreditCard card, Vendor vendor,
+      Connection conn) {
+    boolean success = chargeCreditCard(amount, card, conn);
+    long t_id = insertTransaction(amount, now(), conn);
+    success = success && (t_id != -1);
+    success = success && insertCardPurchase(t_id, card.getCardId(), vendor.getVId(), conn);
+    try {
+      if (success) {
+        conn.commit();
+      } else {
+        conn.rollback();
+      }
+    } catch (SQLException e) {
+      // TODO
+      e.printStackTrace();
+      return false;
+    }
+    return success;
+  }
+
+  public static boolean chargeCreditCard(double amount, CreditCard card, Connection conn) {
+    try (CallableStatement adjust_balance = conn.prepareCall("{call creditCardPurchase (?, ?)}")) {
+      adjust_balance.setLong(1, card.getCardId());
+      adjust_balance.setDouble(2, amount);
+      adjust_balance.execute();
+      return true;
+    } catch (SQLException e) {
+      // TODO
+      e.printStackTrace();
+      return false;
+    }
+  }
+
+  public static boolean purchaseDebitCard(double amount, Customer customer, DebitCard card, Vendor vendor,
+      Connection conn) {
+    // Can't be a penalty since accounts must be checking
+    boolean success = -1 != accountIdWithdrawBalance(amount, card.getAccId(), conn);
+    long t_id = insertTransaction(amount, now(), conn);
+    success = success && (t_id != -1);
+    success = success && insertCardPurchase(t_id, card.getCardId(), vendor.getVId(), conn);
+    try {
+      if (success) {
+        conn.commit();
+      } else {
+        conn.rollback();
+      }
+    } catch (SQLException e) {
+      // TODO Auto-generated catch block
+      // e.printStackTrace();
+      return false;
+    }
+    return success;
+  }
+
   public static int cashWithdraw(double amount, Timestamp t_date, Location loc, Teller teller, Account account,
       Connection conn) {
+    int penalty = accountWithdrawBalance(amount, account, conn);
+    boolean success = penalty != -1;
+
+    long t_id = insertTransaction(amount, t_date, conn);
+
+    success = success && (t_id != -1);
+
+    success = success && insertCashTransaction(t_id, loc.getLocId(), conn);
+    success = success && insertAccountWithdraw(t_id, account.getAccId(), teller.getPId(), conn);
+
+    try {
+      if (success) {
+        conn.commit();
+      } else {
+        conn.rollback();
+        return -1;
+      }
+    } catch (SQLException e) {
+      // TODO Auto-generated catch block
+      e.printStackTrace();
+      return -1;
+    }
+    return penalty;
+  }
+
+  public static int accountWithdrawBalance(double amount, Account account, Connection conn) {
+    return accountIdWithdrawBalance(amount, account.getAccId(), conn);
+  }
+
+  public static int accountIdWithdrawBalance(double amount, long account_id, Connection conn) {
     int penalty = -1;
     try (CallableStatement adjust_balance = conn.prepareCall("{? = call accountWithdraw (?, ?)}")) {
       adjust_balance.registerOutParameter(1, Types.INTEGER);
-      adjust_balance.setLong(2, account.getAccId());
+      adjust_balance.setLong(2, account_id);
       adjust_balance.setDouble(3, amount);
       adjust_balance.execute();
       penalty = adjust_balance.getInt(1);
-      long t_id = insertTransaction(amount, t_date, conn);
-      insertCashTransaction(t_id, loc.getLocId(), conn);
-      insertAccountWithdraw(t_id, account.getAccId(), teller.getPId(), conn);
-      conn.commit();
     } catch (SQLException e) {
       e.printStackTrace();
     }
@@ -210,42 +339,89 @@ public class ConnectionManager {
 
   public static int accountTransfer(double amount, Timestamp t_date, Location loc, Teller teller, Account to_account,
       Account from_account, Connection conn) {
-    int penalty = -1;
-    try (CallableStatement deposit = conn.prepareCall("{call accountDeposit (?, ?)}");
-        CallableStatement withdraw = conn.prepareCall("{? = call accountWithdraw (?, ?)}")) {
-      withdraw.registerOutParameter(1, Types.INTEGER);
-      withdraw.setLong(2, from_account.getAccId());
-      withdraw.setDouble(3, amount);
-      withdraw.execute();
-      penalty = withdraw.getInt(1);
-      deposit.setLong(1, to_account.getAccId());
-      deposit.setDouble(2, amount);
-      deposit.execute();
-      long t_id = insertTransaction(amount, t_date, conn);
-      insertAccountDeposit(t_id, to_account.getAccId(), teller.getPId(), conn);
-      insertAccountWithdraw(t_id, from_account.getAccId(), teller.getPId(), conn);
-      conn.commit();
+
+    boolean success = accountDepositBalance(amount, to_account, conn);
+    int penalty = accountWithdrawBalance(amount, from_account, conn);
+    success = success && (penalty != -1);
+
+    long t_id = insertTransaction(amount, t_date, conn);
+    success = success && (t_id != -1);
+
+    success = success && insertAccountDeposit(t_id, to_account.getAccId(), teller.getPId(), conn);
+    success = success && insertAccountWithdraw(t_id, from_account.getAccId(), teller.getPId(), conn);
+    try {
+      if (success) {
+        conn.commit();
+      } else {
+        conn.rollback();
+        return -1;
+      }
     } catch (SQLException e) {
+      // TODO Auto-generated catch block
       e.printStackTrace();
+      return -1;
     }
     return penalty;
   }
 
+  public static Account selectDebitCardAccount(DebitCard card, Connection conn) {
+    Account account = null;
+    try (PreparedStatement select = conn.prepareStatement(
+        "SELECT * FROM account LEFT OUTER JOIN checking USING (acc_id) LEFT OUTER JOIN savings USING (acc_id) WHERE acc_id = ?")) {
+      select.setLong(1, card.getAccId());
+      ResultSet res = select.executeQuery();
+      if (res.next()) {
+        long acc_id = res.getLong("acc_id");
+        double balance = res.getDouble("balance");
+        double acc_interest_rate = res.getDouble("acc_interest_rate");
+        Integer minimum_balance = res.getInt("minimum_balance");
+        if (res.wasNull()) {
+          // Checking account
+          account = new CheckingAccount(acc_id, balance, acc_interest_rate);
+        } else {
+          // Savings account
+          int penalty = res.getInt("penalty");
+          account = new SavingsAccount(acc_id, balance, acc_interest_rate, minimum_balance, penalty);
+        }
+      }
+    } catch (SQLException e) {
+      e.printStackTrace();
+    }
+    return account;
+  }
+
   public static long cashDeposit(double amount, Timestamp t_date, Location loc, Teller teller, Account account,
       Connection conn) {
-    long t_id = -1;
+    boolean success = accountDepositBalance(amount, account, conn);
+    long t_id = insertTransaction(amount, t_date, conn);
+    success = success && (t_id != -1);
+    success = success && insertCashTransaction(t_id, loc.getLocId(), conn);
+    success = success && insertAccountDeposit(t_id, account.getAccId(), teller.getPId(), conn);
+    try {
+      if (success) {
+        conn.commit();
+      } else {
+        conn.rollback();
+      }
+    } catch (SQLException e) {
+      // TODO Auto-generated catch block
+      e.printStackTrace();
+    }
+
+    return t_id;
+  }
+
+  public static boolean accountDepositBalance(double amount, Account account, Connection conn) {
     try (CallableStatement adjust_balance = conn.prepareCall("{call accountDeposit (?, ?)}")) {
       adjust_balance.setLong(1, account.getAccId());
       adjust_balance.setDouble(2, amount);
       adjust_balance.execute();
-      t_id = insertTransaction(amount, t_date, conn);
-      insertCashTransaction(t_id, loc.getLocId(), conn);
-      insertAccountDeposit(t_id, account.getAccId(), teller.getPId(), conn);
-      conn.commit();
+      return true;
     } catch (SQLException e) {
+      // TODO
       e.printStackTrace();
+      return false;
     }
-    return t_id;
   }
 
   public static long insertTransaction(double amount, Timestamp t_date, Connection conn) {
@@ -263,36 +439,82 @@ public class ConnectionManager {
     return -1;
   }
 
-  public static void insertCashTransaction(long t_id, long loc_id, Connection conn) {
+  public static boolean insertCashTransaction(long t_id, long loc_id, Connection conn) {
     try (PreparedStatement insert = conn.prepareStatement("INSERT INTO cash_transaction VALUES (?, ?)")) {
       insert.setLong(1, t_id);
       insert.setLong(2, loc_id);
       insert.execute();
+      return true;
     } catch (Exception e) {
       e.printStackTrace();
+      return false;
     }
   }
 
-  public static void insertAccountDeposit(long t_id, long acc_id, long teller_id, Connection conn) {
+  public static boolean insertAccountDeposit(long t_id, long acc_id, long teller_id, Connection conn) {
     try (PreparedStatement insert = conn.prepareStatement("INSERT INTO account_deposit VALUES (?, ?, ?)")) {
       insert.setLong(1, t_id);
       insert.setLong(2, acc_id);
       insert.setLong(3, teller_id);
       insert.execute();
+      return true;
     } catch (Exception e) {
       e.printStackTrace();
+      return false;
     }
   }
 
-  public static void insertAccountWithdraw(long t_id, long acc_id, long teller_id, Connection conn) {
+  public static boolean insertAccountWithdraw(long t_id, long acc_id, long teller_id, Connection conn) {
     try (PreparedStatement insert = conn.prepareStatement("INSERT INTO account_withdraw VALUES (?, ?, ?)")) {
       insert.setLong(1, t_id);
       insert.setLong(2, acc_id);
       insert.setLong(3, teller_id);
       insert.execute();
+      return true;
+    } catch (Exception e) {
+      e.printStackTrace();
+      return false;
+    }
+  }
+
+  public static boolean insertCardPurchase(long t_id, long card_id, long v_id, Connection conn) {
+    try (PreparedStatement insert = conn.prepareStatement("INSERT INTO card_purchase VALUES (?, ?, ?)")) {
+      insert.setLong(1, t_id);
+      insert.setLong(2, card_id);
+      insert.setLong(3, v_id);
+      insert.execute();
+      return true;
+    } catch (Exception e) {
+      // e.printStackTrace();
+      return false;
+    }
+  }
+
+  public static long insertLoan(long loanholder_id, double interest_rate, double loan_amount, double amount_due,
+      double monthly_payment, String collatoral, Connection conn) {
+    try (PreparedStatement insert_loan = conn.prepareStatement(
+        "INSERT INTO loan (loanholder_id, loan_interest_rate, amount_loaned, amount_due, monthly_payment) VALUES (?, ?, ?, ?, ?)",
+        new String[] { "l_id" });
+        PreparedStatement insert_collatoral = conn.prepareStatement("INSERT INTO secured_loan VALUES (?, ?)")) {
+      insert_loan.setLong(1, loanholder_id);
+      insert_loan.setDouble(2, interest_rate);
+      insert_loan.setDouble(3, loan_amount);
+      insert_loan.setDouble(4, amount_due);
+      insert_loan.setDouble(5, monthly_payment);
+      insert_loan.execute();
+      ResultSet results = insert_loan.getGeneratedKeys();
+      results.next();
+      long loan_id = results.getLong(1);
+      if (collatoral != null) {
+        insert_collatoral.setLong(1, loan_id);
+        insert_collatoral.setString(2, collatoral);
+        insert_collatoral.execute();
+      }
+      return loan_id;
     } catch (Exception e) {
       e.printStackTrace();
     }
+    return -1;
   }
 
   public static Timestamp now() {
