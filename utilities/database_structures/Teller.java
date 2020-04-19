@@ -2,16 +2,6 @@ package utilities.database_structures;
 
 public class Teller extends Person {
 
-  // It would be sort of neat to have a data structure that slowly built itself
-  // out. i.e. Teller would have getLocation method which would get the location
-  // from the id in the table. Would cache the location after the getLocation
-  // method is first called. This would sort of allow for a simple way to sort of
-  // "remember" which tellers get linked to which location, and other similar
-  // relations such as that. This would make everything less reliant on the
-  // ConnectionManager object and more built into these "database objects". Not
-  // sure how beneficial it would really be but sort of fun to consider. Would
-  // likely make more sense in a more used database as it would help limit sql
-  // queries, though less so in this projects context.
   long tellerLocId;
   double wage;
 

@@ -8,8 +8,8 @@ import utilities.ConnectionManager;
 
 public abstract class Account {
   private long accId;
-  private double balance;
-  private double accInterestRate;
+  protected double balance;
+  protected double accInterestRate;
 
   public Account(long acc_id, double balance, double acc_interest_rate) {
     this.accId = acc_id;
@@ -39,18 +39,11 @@ public abstract class Account {
   }
 
   /**
-   * TODO should be replaced with update fields from db so this object always
-   * accurately represents what is in the db.
+   * Refreshes the values in this object to what is stored in the db.
    * 
-   * Adjusts the balance then returns the new value.
-   * 
-   * @param adjustment How much to change the balance by
-   * @return The new balance.
+   * @return True if succeeded.
    */
-  public double adjustBalance(double adjustment) {
-    this.balance += adjustment;
-    return this.balance;
-  }
+  public abstract boolean refresh(Connection conn);
 
   /**
    * 
@@ -74,13 +67,13 @@ public abstract class Account {
   }
 
   /**
-   * Adjusts the balance of this account to represent a deposit into the account. 
+   * Adjusts the balance of this account to represent a deposit into the account.
    * 
    * Does NOT commit the transaction.
    * 
    * @param amount The amount deposited
-   * @param conn The db connection.
-   * @return True is succeeded. 
+   * @param conn   The db connection.
+   * @return True is succeeded.
    */
   public boolean dbDepositBalance(double amount, Connection conn) {
     try (CallableStatement adjust_balance = conn.prepareCall("{call accountDeposit (?, ?)}")) {

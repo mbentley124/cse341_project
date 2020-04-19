@@ -1,5 +1,6 @@
 ./CardPurchaseInterface.java
 ./LoanTakeoutInterface.java
+./utilities/ResultSetConverter.java
 ./utilities/ConnectionManager.java
 ./utilities/database_structures/Customer.java
 ./utilities/database_structures/CheckingAccount.java

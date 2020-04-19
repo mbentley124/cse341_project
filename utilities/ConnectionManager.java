@@ -13,12 +13,10 @@ import java.util.Date;
 import java.util.List;
 
 import utilities.database_structures.Account;
-import utilities.database_structures.CheckingAccount;
 import utilities.database_structures.CreditCard;
 import utilities.database_structures.Customer;
 import utilities.database_structures.DebitCard;
 import utilities.database_structures.Location;
-import utilities.database_structures.SavingsAccount;
 import utilities.database_structures.Teller;
 import utilities.database_structures.Vendor;
 
@@ -43,23 +41,18 @@ public class ConnectionManager {
    * @return A list of customers with matching names. Case insensitive.
    */
   public static List<Customer> selectCustomers(String user_name, Connection conn) {
-    List<Customer> customer_list = new ArrayList<>();
+    List<Customer> customers = new ArrayList<>();
 
-    try (PreparedStatement dept_search = conn
+    try (PreparedStatement search = conn
         .prepareStatement("SELECT * FROM person JOIN customer USING (p_id) WHERE LOWER(full_name) LIKE ?")) {
-      dept_search.setString(1, "%" + user_name.toLowerCase() + "%");
+      search.setString(1, "%" + user_name.toLowerCase() + "%");
 
-      ResultSet customer_results = dept_search.executeQuery();
-
-      while (customer_results.next()) {
-        customer_list.add(new Customer(customer_results.getLong("p_id"), customer_results.getString("full_name"),
-            customer_results.getTimestamp("joined_date")));
-      }
+      customers = ResultSetConverter.toCustomers(search.executeQuery());
     } catch (SQLException e) {
       // TODO exit quietly.
       e.printStackTrace();
     }
-    return customer_list;
+    return customers;
   }
 
   /**
@@ -74,11 +67,7 @@ public class ConnectionManager {
     try (PreparedStatement select = conn.prepareStatement("SELECT * FROM vendor WHERE LOWER(vendor_name) LIKE ?")) {
       select.setString(1, "%" + vendor_name.toLowerCase() + "%");
 
-      ResultSet results = select.executeQuery();
-
-      while (results.next()) {
-        vendor_list.add(new Vendor(results.getLong("v_id"), results.getString("vendor_name")));
-      }
+      vendor_list = ResultSetConverter.toVendors(select.executeQuery());
     } catch (SQLException e) {
       // TODO exit quietly
       e.printStackTrace();
@@ -93,19 +82,15 @@ public class ConnectionManager {
    * @return A list of all the locations
    */
   public static List<Location> selectAllLocations(Connection conn) {
-    List<Location> location_list = new ArrayList<>();
+    List<Location> locations = new ArrayList<>();
 
     try (PreparedStatement dept_search = conn.prepareStatement("SELECT * FROM location")) {
-      ResultSet location_results = dept_search.executeQuery();
-
-      while (location_results.next()) {
-        location_list.add(new Location(location_results.getLong("loc_id"), location_results.getString("loc_name")));
-      }
+      locations = ResultSetConverter.toLocations(dept_search.executeQuery());
     } catch (SQLException e) {
       // TODO exit quietly.
       e.printStackTrace();
     }
-    return location_list;
+    return locations;
   }
 
   /**

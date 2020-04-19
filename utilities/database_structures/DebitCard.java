@@ -2,9 +2,11 @@ package utilities.database_structures;
 
 import java.sql.Connection;
 import java.sql.PreparedStatement;
-import java.sql.ResultSet;
 import java.sql.SQLException;
 import java.sql.Timestamp;
+import java.util.List;
+
+import utilities.ResultSetConverter;
 
 public class DebitCard extends Card {
   private long accId;
@@ -38,14 +40,10 @@ public class DebitCard extends Card {
     try (PreparedStatement select = conn.prepareStatement(
         "SELECT * FROM account LEFT OUTER JOIN checking USING (acc_id) LEFT OUTER JOIN savings USING (acc_id) WHERE acc_id = ?")) {
       select.setLong(1, this.getAccId());
-      ResultSet res = select.executeQuery();
+      List<CheckingAccount> accounts = ResultSetConverter.toCheckingAccounts(select.executeQuery());
       // If the checking account exists
-      if (res.next()) {
-        long acc_id = res.getLong("acc_id");
-        double balance = res.getDouble("balance");
-        double acc_interest_rate = res.getDouble("acc_interest_rate");
-        // Checking account
-        account = new CheckingAccount(acc_id, balance, acc_interest_rate);
+      if (accounts.size() > 0) {
+        account = accounts.get(0);
       }
     } catch (SQLException e) {
       e.printStackTrace();

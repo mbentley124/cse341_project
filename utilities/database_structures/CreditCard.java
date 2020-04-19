@@ -2,8 +2,12 @@ package utilities.database_structures;
 
 import java.sql.CallableStatement;
 import java.sql.Connection;
+import java.sql.PreparedStatement;
 import java.sql.SQLException;
 import java.sql.Timestamp;
+import java.util.List;
+
+import utilities.ResultSetConverter;
 
 public class CreditCard extends Card {
 
@@ -21,11 +25,32 @@ public class CreditCard extends Card {
     this.rollingBalance = rolling_balance;
   }
 
-  // TODO need to replace this with a method that just resets everything in the
-  // object to what is stored in the db.
-  public double adjustRollingBalance(double adjustment) {
-    this.rollingBalance += adjustment;
-    return this.getRollingBalance();
+  /**
+   * Refreshes all the values in this object to what is currently in the db.
+   * 
+   * @param conn The db connection
+   * @return True if successful.
+   */
+  public boolean refresh(Connection conn) {
+    try (PreparedStatement select = conn
+        .prepareStatement("SELECT * FROM card JOIN credit_card USING (card_id) WHERE card_id = ?")) {
+      select.setLong(1, this.getCardId());
+      List<CreditCard> cards = ResultSetConverter.toCreditCards(select.executeQuery());
+      if (cards.size() > 0) {
+        this.cardName = cards.get(0).getCardName();
+        this.cardOpenedDate = cards.get(0).getCardOpenedDate();
+        this.cardHolderId = cards.get(0).getCardHolderId();
+        this.creditInterestRate = cards.get(0).getCreditInterestRate();
+        this.creditLimit = cards.get(0).getCreditInterestRate();
+        this.balanceDue = cards.get(0).getBalanceDue();
+        this.rollingBalance = cards.get(0).getRollingBalance();
+        return true;
+      }
+    } catch (SQLException e) {
+      // TODO
+      e.printStackTrace();
+    }
+    return false;
   }
 
   /**

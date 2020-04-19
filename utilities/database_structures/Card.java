@@ -4,9 +4,9 @@ import java.sql.Timestamp;
 
 public abstract class Card {
   private long cardId;
-  private long cardHolderId;
-  private String cardName;
-  private Timestamp cardOpenedDate;
+  protected long cardHolderId;
+  protected String cardName;
+  protected Timestamp cardOpenedDate;
 
   public Card(long card_id, String card_name, long card_holder_id, Timestamp card_opened_date) {
     this.cardId = card_id;

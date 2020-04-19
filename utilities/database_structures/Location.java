@@ -2,10 +2,11 @@ package utilities.database_structures;
 
 import java.sql.Connection;
 import java.sql.PreparedStatement;
-import java.sql.ResultSet;
 import java.sql.SQLException;
 import java.util.ArrayList;
 import java.util.List;
+
+import utilities.ResultSetConverter;
 
 public class Location {
 
@@ -43,21 +44,16 @@ public class Location {
    * @return All the tellers who work at this location
    */
   public List<Teller> selectTellers(Connection conn) {
-    List<Teller> teller_list = new ArrayList<>();
+    List<Teller> tellers = new ArrayList<>();
 
     try (PreparedStatement dept_search = conn.prepareStatement(
         "SELECT * FROM person JOIN teller USING (p_id) JOIN location on location.loc_id = teller.teller_loc_id WHERE loc_id = ?")) {
       dept_search.setLong(1, this.getLocId());
-      ResultSet teller_results = dept_search.executeQuery();
-
-      while (teller_results.next()) {
-        teller_list.add(new Teller(teller_results.getLong("p_id"), teller_results.getString("full_name"),
-            teller_results.getLong("teller_loc_id"), teller_results.getDouble("wage")));
-      }
+      tellers = ResultSetConverter.toTellers(dept_search.executeQuery());
     } catch (SQLException e) {
       // TODO exit quietly.
       e.printStackTrace();
     }
-    return teller_list;
+    return tellers;
   }
 }

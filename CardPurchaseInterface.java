@@ -87,7 +87,7 @@ public class CardPurchaseInterface {
         CreditCard c_card = (CreditCard) card;
         boolean success = ConnectionManager.purchaseCreditCard(amount, customer, c_card, vendor, conn);
         if (success) {
-          c_card.adjustRollingBalance(amount);
+          c_card.refresh(conn);
           System.out.println("Transaction completed. $" + c_card.getRollingBalance() + " rolling balance");
 
           promptTransactionCompletion(conn, customer);

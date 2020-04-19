@@ -164,10 +164,10 @@ public class DepositWithdrawInterface {
         if (penalty != 0) {
           System.out.println("There is a $" + penalty + " penalty for this transfer");
         }
-        double new_to_balance = to_account.adjustBalance(transfer_amount);
-        double new_from_balance = from_account.adjustBalance(-(transfer_amount + penalty));
-        System.out.println("You have transfered $" + transfer_amount + ". You now have $" + new_to_balance + " in "
-            + to_account.toString() + " and $" + new_from_balance + " in " + from_account.toString());
+        to_account.refresh(conn);
+        from_account.refresh(conn);
+        System.out.println("You have transfered $" + transfer_amount + ". You now have $" + to_account.getBalance() + " in "
+            + to_account.toString() + " and $" + from_account.getBalance() + " in " + from_account.toString());
         promptWithdrawOrDeposit(conn, customer, to_account, location, teller);
       }
     }
@@ -189,9 +189,9 @@ public class DepositWithdrawInterface {
         if (penalty != 0) {
           System.out.println("There is a $" + penalty + " penalty for this withdrawal");
         }
-        double new_balance = account.adjustBalance(-(withdraw_amount + penalty));
+        account.refresh(conn);
         System.out
-            .println("You have withdrew $" + withdraw_amount + ". You now have $" + new_balance + " in your account.");
+            .println("You have withdrew $" + withdraw_amount + ". You now have $" + account.getBalance() + " in your account.");
         promptWithdrawOrDeposit(conn, customer, account, location, teller);
       }
     }
@@ -209,9 +209,9 @@ public class DepositWithdrawInterface {
       if (t_id == -1) {
         System.out.println("Unable to make deposit!");
       } else {
-        double new_balance = account.adjustBalance(deposit_amount);
+        account.refresh(conn);
         System.out
-            .println("You have deposited $" + deposit_amount + ". You now have $" + new_balance + " in your account.");
+            .println("You have deposited $" + deposit_amount + ". You now have $" + account.getBalance() + " in your account.");
       }
       goBack(conn, customer, account, location, teller, back_method);
     }
