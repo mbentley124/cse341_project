@@ -1,6 +1,12 @@
 import java.sql.Connection;
 import java.sql.SQLException;
 
+import utilities.ConnectionManager;
+import utilities.Input;
+
+// TODO need to make sure that values that can be null don't break the db. 
+// TODO ensure that it isn't inserting anything into the db without commit being called. 
+
 public class Bank {
 
   public static void main(String[] args) {

@@ -112,7 +112,7 @@ CREATE TABLE debit_card
     FOREIGN KEY (card_id) REFERENCES card
         ON DELETE CASCADE,
     FOREIGN KEY (acc_id) REFERENCES checking
-        ON DELETE SET NULL);
+        ON DELETE CASCADE);
 
 -- LOAN TABLES
 CREATE TABLE loan 

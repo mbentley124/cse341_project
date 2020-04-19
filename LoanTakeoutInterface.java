@@ -1,6 +1,8 @@
 import java.sql.Connection;
 
-import database_structures.Customer;
+import utilities.database_structures.Customer;
+import utilities.ConnectionManager;
+import utilities.Input;
 
 /**
  * Need to determine loanholder id, loan interest rate (determined by math?),
@@ -42,7 +44,7 @@ public class LoanTakeoutInterface {
 
   public static void loanAmount(Connection conn, Customer customer) {
     // We don't want a single customer to have too much money loaned out to them.
-    Double outstanding_loan_amount = ConnectionManager.getNetCustomerLoanAmountDue(conn, customer);
+    Double outstanding_loan_amount = customer.getNetLoanAmountDue(conn);
     if (outstanding_loan_amount == null) {
       System.out
           .println("There was an issue retrieving your outstanding loans. Please use this interface another time.");
@@ -92,6 +94,7 @@ public class LoanTakeoutInterface {
     }
   }
 
+  // TODO will fail if colatoral is longer than 15 characters FIX.
   public static void getColatoral(Connection conn, Customer customer, double loan_amount, BackMethod back_method) {
     String colatoral = Input.prompt("What is your colatoral: ");
     if (Input.isBackSet()) {
@@ -113,8 +116,8 @@ public class LoanTakeoutInterface {
     // loanholder id, loan interest rate (determined by math?),
     // * amount loaned (amount due = amount loaned), monthly payment (likely percent
     // * of amount loaned), and colatoral (may not exist)
-    Double net_loan_amount_due = ConnectionManager.getNetCustomerLoanAmountDue(conn, customer);
-    Double net_account_balance = ConnectionManager.getNetCustomerAccountBalance(conn, customer);
+    Double net_loan_amount_due = customer.getNetLoanAmountDue(conn);
+    Double net_account_balance = customer.getNetAccountBalance(conn);
 
     if (net_account_balance == null || net_loan_amount_due == null) {
       System.out.println("Unable to calculate!");

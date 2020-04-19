@@ -1,10 +1,12 @@
 import java.sql.Connection;
 import java.util.List;
 
-import database_structures.Account;
-import database_structures.Customer;
-import database_structures.Location;
-import database_structures.Teller;
+import utilities.database_structures.Account;
+import utilities.database_structures.Customer;
+import utilities.database_structures.Location;
+import utilities.database_structures.Teller;
+import utilities.ConnectionManager;
+import utilities.Input;
 
 /**
  * This was a real fancy diagram showing the path the user goes along when using
@@ -55,7 +57,7 @@ public class DepositWithdrawInterface {
 
   public static void promptAccount(Connection conn, Customer customer) {
     System.out.print("Welcome " + customer.getFullName() + "! ");
-    List<Account> accounts = ConnectionManager.selectUserAccounts(customer, conn);
+    List<Account> accounts = customer.selectAccounts(conn);
     if (accounts.size() == 0) {
       System.out.println("You don't seem to have any accounts with us! Please login as someone else");
       promptCustomerName(conn);
@@ -90,7 +92,7 @@ public class DepositWithdrawInterface {
   }
 
   public static void pathFromLocationTellers(Connection conn, Customer customer, Account account, Location location) {
-    List<Teller> compatible_tellers = ConnectionManager.selectLocationTellers(conn, location);
+    List<Teller> compatible_tellers = location.selectTellers(conn);
     if (compatible_tellers.size() == 1) {
       System.out.println("This location only has an ATM which only supports deposits");
       accountDeposit(conn, customer, account, location, compatible_tellers.get(0), BackMethod.PROMPT_LOCATION);
@@ -132,7 +134,7 @@ public class DepositWithdrawInterface {
 
   public static void accountTransferSelection(Connection conn, Customer customer, Account account, Location location,
       Teller teller) {
-    List<Account> other_accounts = ConnectionManager.selectUserAccounts(customer, conn);
+    List<Account> other_accounts = customer.selectAccounts(conn);
     other_accounts.removeIf(acc -> acc.getAccId() == account.getAccId());
     if (other_accounts.size() == 0) {
       System.out.println("You don't have any accounts to transfer from.");
@@ -153,8 +155,8 @@ public class DepositWithdrawInterface {
     } else if (Input.isQuitSet()) {
       return;
     } else {
-      int penalty = ConnectionManager.accountTransfer(transfer_amount, ConnectionManager.now(), location, teller,
-          to_account, from_account, conn);
+      int penalty = ConnectionManager.accountTransfer(transfer_amount, location, teller, to_account, from_account,
+          conn);
       if (penalty == -1) {
         System.out.println("Unable to transfer that much!");
         accountMoneyTransfer(conn, customer, from_account, to_account, location, teller);
@@ -179,8 +181,7 @@ public class DepositWithdrawInterface {
     } else if (Input.isQuitSet()) {
       return;
     } else {
-      int penalty = ConnectionManager.cashWithdraw(withdraw_amount, ConnectionManager.now(), location, teller, account,
-          conn);
+      int penalty = ConnectionManager.cashWithdraw(withdraw_amount, location, teller, account, conn);
       if (penalty == -1) {
         System.out.println("Unable to withdraw that much!");
         accountWithdraw(conn, customer, account, location, teller);
@@ -204,8 +205,7 @@ public class DepositWithdrawInterface {
     } else if (Input.isQuitSet()) {
       return;
     } else {
-      long t_id = ConnectionManager.cashDeposit(deposit_amount, ConnectionManager.now(), location, teller, account,
-          conn);
+      long t_id = ConnectionManager.cashDeposit(deposit_amount, location, teller, account, conn);
       if (t_id == -1) {
         System.out.println("Unable to make deposit!");
       } else {

@@ -1,4 +1,4 @@
-package database_structures;
+package utilities.database_structures;
 
 public class Teller extends Person {
 

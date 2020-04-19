@@ -1,0 +1,97 @@
+package utilities.database_structures;
+
+import java.sql.CallableStatement;
+import java.sql.Connection;
+import java.sql.SQLException;
+
+import utilities.ConnectionManager;
+
+public abstract class Account {
+  private long accId;
+  private double balance;
+  private double accInterestRate;
+
+  public Account(long acc_id, double balance, double acc_interest_rate) {
+    this.accId = acc_id;
+    this.balance = balance;
+    this.accInterestRate = acc_interest_rate;
+  }
+
+  /**
+   * @return the accId
+   */
+  public long getAccId() {
+    return accId;
+  }
+
+  /**
+   * @return the balance
+   */
+  public double getBalance() {
+    return balance;
+  }
+
+  /**
+   * @return the accInterestRate
+   */
+  public double getAccInterestRate() {
+    return accInterestRate;
+  }
+
+  /**
+   * TODO should be replaced with update fields from db so this object always
+   * accurately represents what is in the db.
+   * 
+   * Adjusts the balance then returns the new value.
+   * 
+   * @param adjustment How much to change the balance by
+   * @return The new balance.
+   */
+  public double adjustBalance(double adjustment) {
+    this.balance += adjustment;
+    return this.balance;
+  }
+
+  /**
+   * 
+   * @return True if account is a savings account
+   */
+  public abstract boolean isSavings();
+
+  @Override
+  public String toString() {
+    String type = this.isSavings() ? "Savings" : "Checking";
+    return "Account " + this.accId + " (" + type + ")";
+  }
+
+  /**
+   * Same as
+   * {@link ConnectionManager#accountIdWithdrawBalance(double, long, Connection)}
+   * but using this account.
+   */
+  public int dbWithdrawBalance(double amount, Connection conn) {
+    return ConnectionManager.accountIdWithdrawBalance(amount, this.getAccId(), conn);
+  }
+
+  /**
+   * Adjusts the balance of this account to represent a deposit into the account. 
+   * 
+   * Does NOT commit the transaction.
+   * 
+   * @param amount The amount deposited
+   * @param conn The db connection.
+   * @return True is succeeded. 
+   */
+  public boolean dbDepositBalance(double amount, Connection conn) {
+    try (CallableStatement adjust_balance = conn.prepareCall("{call accountDeposit (?, ?)}")) {
+      adjust_balance.setLong(1, this.getAccId());
+      adjust_balance.setDouble(2, amount);
+      adjust_balance.execute();
+      return true;
+    } catch (SQLException e) {
+      // TODO
+      e.printStackTrace();
+      return false;
+    }
+  }
+}

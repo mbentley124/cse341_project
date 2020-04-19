@@ -1,5 +1,8 @@
-package database_structures;
+package utilities.database_structures;
 
+import java.sql.CallableStatement;
+import java.sql.Connection;
+import java.sql.SQLException;
 import java.sql.Timestamp;
 
 public class CreditCard extends Card {
@@ -18,6 +21,8 @@ public class CreditCard extends Card {
     this.rollingBalance = rolling_balance;
   }
 
+  // TODO need to replace this with a method that just resets everything in the
+  // object to what is stored in the db.
   public double adjustRollingBalance(double adjustment) {
     this.rollingBalance += adjustment;
     return this.getRollingBalance();
@@ -54,5 +59,27 @@ public class CreditCard extends Card {
   @Override
   protected String cardType() {
     return "Credit";
+  }
+
+  /**
+   * Charges this credit card, by adjusting the balance on the database.
+   * 
+   * Does NOT commit the database insertion.
+   * 
+   * @param amount The amount to charge
+   * @param conn   The database connection
+   * @return True if succeeded
+   */
+  public boolean chargeCard(double amount, Connection conn) {
+    try (CallableStatement adjust_balance = conn.prepareCall("{call creditCardPurchase (?, ?)}")) {
+      adjust_balance.setLong(1, this.getCardId());
+      adjust_balance.setDouble(2, amount);
+      adjust_balance.execute();
+      return true;
+    } catch (SQLException e) {
+      // TODO
+      e.printStackTrace();
+      return false;
+    }
   }
 }

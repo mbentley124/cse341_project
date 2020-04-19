@@ -1,12 +1,14 @@
 import java.sql.Connection;
 import java.util.List;
 
-import database_structures.Account;
-import database_structures.Card;
-import database_structures.CreditCard;
-import database_structures.Customer;
-import database_structures.DebitCard;
-import database_structures.Vendor;
+import utilities.ConnectionManager;
+import utilities.Input;
+import utilities.database_structures.Account;
+import utilities.database_structures.Card;
+import utilities.database_structures.CreditCard;
+import utilities.database_structures.Customer;
+import utilities.database_structures.DebitCard;
+import utilities.database_structures.Vendor;
 
 /**
  * Fancy diagram below that I accidentaly ruined. I have a habit of doing
@@ -35,7 +37,7 @@ public class CardPurchaseInterface {
   }
 
   public static void promptCard(Connection conn, Customer customer) {
-    List<Card> cards = ConnectionManager.selectCustomerCards(conn, customer);
+    List<Card> cards = customer.selectCards(conn);
     if (cards.size() == 0) {
       System.out.println("You don't have any cards with us. Please login with a different user");
       promptCustomerName(conn);
@@ -69,7 +71,7 @@ public class CardPurchaseInterface {
           + " with a credit limit of $" + c_card.getCreditLimit());
     } else if (card instanceof DebitCard) {
       DebitCard d_card = (DebitCard) card;
-      Account account = ConnectionManager.selectDebitCardAccount(d_card, conn);
+      Account account = d_card.selectAccount(conn);
       if (account != null) {
         System.out.println("You currently have $" + account.getBalance() + " in your account");
       }
@@ -95,9 +97,9 @@ public class CardPurchaseInterface {
         }
       } else if (card instanceof DebitCard) {
         DebitCard d_card = (DebitCard) card;
-        boolean success = ConnectionManager.purchaseDebitCard(amount, customer, d_card, vendor, conn);
+        boolean success = ConnectionManager.purchaseDebitCard(amount, d_card, vendor, conn);
         if (success) {
-          Account account = ConnectionManager.selectDebitCardAccount(d_card, conn);
+          Account account = d_card.selectAccount(conn);
           if (account == null) {
             System.out.println("Transaction completed");
           } else {

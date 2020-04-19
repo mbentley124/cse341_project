@@ -1,4 +1,4 @@
-package database_structures;
+package utilities.database_structures;
 
 public class CheckingAccount extends Account {
   public CheckingAccount(long acc_id, double balance, double acc_interest_rate) {

@@ -1,9 +1,11 @@
+package utilities;
+
 import java.sql.Connection;
 import java.util.List;
 import java.util.Scanner;
 
-import database_structures.Customer;
-import database_structures.Vendor;
+import utilities.database_structures.Customer;
+import utilities.database_structures.Vendor;
 
 public class Input {
 

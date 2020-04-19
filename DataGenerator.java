@@ -17,6 +17,8 @@ import java.util.Map;
 import java.util.Random;
 import java.util.Map.Entry;
 
+import utilities.ConnectionManager;
+
 public class DataGenerator {
 
 	private static Random random = new Random(20);
