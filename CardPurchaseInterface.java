@@ -1,23 +1,27 @@
 import java.sql.Connection;
 import java.util.List;
 
+import database_structures.Account;
 import database_structures.Card;
+import database_structures.CreditCard;
 import database_structures.Customer;
+import database_structures.DebitCard;
 import database_structures.Vendor;
 
 /**
- * Enter User Name
- *   Enter Card Name (if has cards)
- *     Enter Store Name
- *       Enter Purchase Amount
- *         Confirm purchase and go back to 
- *   Go Back to Enter User Name (if has no cards)
+ * Fancy diagram below that I accidentaly ruined. I have a habit of doing
+ * this...
+ * 
+ * Enter User Name Enter Card Name (if has cards) Enter Store Name Enter
+ * Purchase Amount Confirm purchase and go back to Go Back to Enter User Name
+ * (if has no cards)
  * 
  */
 public class CardPurchaseInterface {
 
   public static void run(Connection conn) {
-    System.out.println("Welcome to the card purchase interface! At any time you can type quit to quit the interface and back to go back.");
+    System.out.println(
+        "Welcome to the card purchase interface! At any time you can type quit to quit the interface and back to go back.");
     promptCustomerName(conn);
   }
 
@@ -59,15 +63,62 @@ public class CardPurchaseInterface {
   }
 
   public static void promptAmount(Connection conn, Customer customer, Card card, Vendor vendor) {
+    if (card instanceof CreditCard) {
+      CreditCard c_card = (CreditCard) card;
+      System.out.println("You currently have a rolling balance of $" + c_card.getRollingBalance()
+          + " with a credit limit of $" + c_card.getCreditLimit());
+    } else if (card instanceof DebitCard) {
+      DebitCard d_card = (DebitCard) card;
+      Account account = ConnectionManager.selectDebitCardAccount(d_card, conn);
+      if (account != null) {
+        System.out.println("You currently have $" + account.getBalance() + " in your account");
+      }
+    }
     Double amount = Input.promptDouble("What is the value of the items you're purchasing?", true);
     if (Input.isBackSet()) {
       promptVendor(conn, customer, card);
     } else if (Input.isQuitSet()) {
       return;
     } else {
-      // TODO make purchase. 
       System.out.println("Purchase $" + amount);
-      // TODO go back to proper options. 
+      if (card instanceof CreditCard) {
+        CreditCard c_card = (CreditCard) card;
+        boolean success = ConnectionManager.purchaseCreditCard(amount, customer, c_card, vendor, conn);
+        if (success) {
+          c_card.adjustRollingBalance(amount);
+          System.out.println("Transaction completed. $" + c_card.getRollingBalance() + " rolling balance");
+
+          promptTransactionCompletion(conn, customer);
+        } else {
+          System.out.println("Card declined!");
+          promptAmount(conn, customer, card, vendor);
+        }
+      } else if (card instanceof DebitCard) {
+        DebitCard d_card = (DebitCard) card;
+        boolean success = ConnectionManager.purchaseDebitCard(amount, customer, d_card, vendor, conn);
+        if (success) {
+          Account account = ConnectionManager.selectDebitCardAccount(d_card, conn);
+          if (account == null) {
+            System.out.println("Transaction completed");
+          } else {
+            System.out.println("Transaction completed. $" + account.getBalance() + " current balance");
+          }
+
+          promptTransactionCompletion(conn, customer);
+        } else {
+          System.out.println("Card declined!");
+          promptAmount(conn, customer, card, vendor);
+        }
+      }
+    }
+  }
+
+  public static void promptTransactionCompletion(Connection conn, Customer customer) {
+    String option = Input.prompt("Would you like to make another purchase?", new String[] { "Yes", "No" });
+    if (Input.isBackSet() || Input.isQuitSet() || option.equals("No")) {
+      return;
+    } else {
+      promptCard(conn, customer);
     }
   }
 }
