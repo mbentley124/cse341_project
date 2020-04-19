@@ -204,10 +204,15 @@ public class DepositWithdrawInterface {
     } else if (Input.isQuitSet()) {
       return;
     } else {
-      ConnectionManager.cashDeposit(deposit_amount, ConnectionManager.now(), location, teller, account, conn);
-      double new_balance = account.adjustBalance(deposit_amount);
-      System.out
-          .println("You have deposited $" + deposit_amount + ". You now have $" + new_balance + " in your account.");
+      long t_id = ConnectionManager.cashDeposit(deposit_amount, ConnectionManager.now(), location, teller, account,
+          conn);
+      if (t_id == -1) {
+        System.out.println("Unable to make deposit!");
+      } else {
+        double new_balance = account.adjustBalance(deposit_amount);
+        System.out
+            .println("You have deposited $" + deposit_amount + ". You now have $" + new_balance + " in your account.");
+      }
       goBack(conn, customer, account, location, teller, back_method);
     }
   }
