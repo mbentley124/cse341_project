@@ -96,7 +96,7 @@ public class LoanTakeoutInterface {
 
   // TODO will fail if colatoral is longer than 15 characters FIX.
   public static void getColatoral(Connection conn, Customer customer, double loan_amount, BackMethod back_method) {
-    String colatoral = Input.prompt("What is your colatoral: ");
+    String colatoral = Input.promptCustomString("What is your colatoral (must be less than 16 characters): ", (input) -> input.length() <= 15);
     if (Input.isBackSet()) {
       goBack(conn, customer, loan_amount, back_method);
     } else if (Input.isQuitSet()) {
@@ -203,21 +203,22 @@ public class LoanTakeoutInterface {
     } else if (Input.isQuitSet()) {
       return;
     } else {
-      if (-1 == ConnectionManager.insertLoan(customer.getPId(), interest_rate, loan_amount, loan_amount,
-          monthly_payment, colatoral, conn)) {
-        System.out.println("There was an error! Please try another day");
-        return;
-      } else {
-        if (loan_amount > 100000) {
-          // Some witty humor for the user.
-          System.out.println(
-              "Loan taken out. We are mailing you a check with the money (For that amount of money its gonna be one of the big checks too)");
-        } else {
-          System.out.println("Loan taken out. We are mailing you a check with the money");
-        }
-        System.out.println("Thank you for using this interface");
-        return;
-      }
+      // TODO
+      // if (-1 == ConnectionManager.insertLoan(customer.getPId(), interest_rate, loan_amount, loan_amount,
+      //     monthly_payment, colatoral, conn)) {
+      //   System.out.println("There was an error! Please try another day");
+      //   return;
+      // } else {
+      //   if (loan_amount > 100000) {
+      //     // Some witty humor for the user.
+      //     System.out.println(
+      //         "Loan taken out. We are mailing you a check with the money (For that amount of money its gonna be one of the big checks too)");
+      //   } else {
+      //     System.out.println("Loan taken out. We are mailing you a check with the money");
+      //   }
+      //   System.out.println("Thank you for using this interface");
+      //   return;
+      // }
     }
   }
 

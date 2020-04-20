@@ -47,6 +47,6 @@ public abstract class Card {
 
   @Override
   public String toString() {
-    return this.getCardName() + " (" + this.cardType() + " Card)";
+    return this.getCardName() + " Card (" + this.cardType() + " Card)";
   }
 }

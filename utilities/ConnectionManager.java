@@ -117,8 +117,6 @@ public class ConnectionManager {
         conn.rollback();
       }
     } catch (SQLException e) {
-      // TODO
-      e.printStackTrace();
       return false;
     }
     return success;
@@ -216,7 +214,7 @@ public class ConnectionManager {
       adjust_balance.execute();
       penalty = adjust_balance.getInt(1);
     } catch (SQLException e) {
-      e.printStackTrace();
+      // e.printStackTrace();
     }
     return penalty;
   }
@@ -257,8 +255,6 @@ public class ConnectionManager {
         return -1;
       }
     } catch (SQLException e) {
-      // TODO Auto-generated catch block
-      e.printStackTrace();
       return -1;
     }
     return penalty;
@@ -414,7 +410,7 @@ public class ConnectionManager {
   }
 
   /**
-   * Inserts a loan into the db.
+   * Inserts a loan into the db. Does NOT autocommit. 
    * 
    * @param loanholder_id   The id of the person taking out the loan
    * @param interest_rate   The interest rate of the loan.
@@ -426,17 +422,18 @@ public class ConnectionManager {
    * @param conn            The db connection.
    * @return The id of the loan. -1 if insertion failed.
    */
-  public static long insertLoan(long loanholder_id, double interest_rate, double loan_amount, double amount_due,
-      double monthly_payment, String collatoral, Connection conn) {
+  public static long insertLoan(long loanholder_id, double interest_rate, double amount_due, double monthly_payment,
+      String collatoral, long loan_approved_by, long loan_initial_transaction_id, Connection conn) {
     try (PreparedStatement insert_loan = conn.prepareStatement(
-        "INSERT INTO loan (loanholder_id, loan_interest_rate, amount_loaned, amount_due, monthly_payment) VALUES (?, ?, ?, ?, ?)",
+        "INSERT INTO loan (loanholder_id, loan_interest_rate, amount_due, monthly_payment, loan_approved_by, loan_initial_transaction_id) VALUES (?, ?, ?, ?, ?, ?)",
         new String[] { "l_id" });
         PreparedStatement insert_collatoral = conn.prepareStatement("INSERT INTO secured_loan VALUES (?, ?)")) {
       insert_loan.setLong(1, loanholder_id);
       insert_loan.setDouble(2, interest_rate);
-      insert_loan.setDouble(3, loan_amount);
-      insert_loan.setDouble(4, amount_due);
-      insert_loan.setDouble(5, monthly_payment);
+      insert_loan.setDouble(3, amount_due);
+      insert_loan.setDouble(4, monthly_payment);
+      insert_loan.setLong(5, loan_approved_by);
+      insert_loan.setLong(6, loan_initial_transaction_id);
       insert_loan.execute();
       ResultSet results = insert_loan.getGeneratedKeys();
       results.next();
@@ -446,15 +443,8 @@ public class ConnectionManager {
         insert_collatoral.setString(2, collatoral);
         insert_collatoral.execute();
       }
-      conn.commit();
       return loan_id;
     } catch (Exception e) {
-      e.printStackTrace();
-    }
-    try {
-      conn.rollback();
-    } catch (SQLException e) {
-      // TODO Auto-generated catch block
       e.printStackTrace();
     }
     return -1;

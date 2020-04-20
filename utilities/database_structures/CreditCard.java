@@ -15,18 +15,23 @@ public class CreditCard extends Card {
   private double creditLimit;
   private double balanceDue;
   private double rollingBalance;
+  private long creditCardApprovedBy;
 
   public CreditCard(long card_id, String card_name, Timestamp card_opened_date, long card_holder_id,
-      double credit_interest_rate, double credit_limit, double balance_due, double rolling_balance) {
+      double credit_interest_rate, double credit_limit, double balance_due, double rolling_balance,
+      long credit_card_approved_by) {
     super(card_id, card_name, card_holder_id, card_opened_date);
     this.creditInterestRate = credit_interest_rate;
     this.creditLimit = credit_limit;
     this.balanceDue = balance_due;
     this.rollingBalance = rolling_balance;
+    this.creditCardApprovedBy = credit_card_approved_by;
   }
 
   /**
-   * Refreshes all the values in this object to what is currently in the db.
+   * Refreshes all the values in this object to what is currently in the db. Won't
+   * update values that don't make sense to change i.e. who this card was approved
+   * by, the id, when it was opened.
    * 
    * @param conn The db connection
    * @return True if successful.
@@ -51,6 +56,13 @@ public class CreditCard extends Card {
       e.printStackTrace();
     }
     return false;
+  }
+
+  /**
+   * @return the id of who approved this credit card. 
+   */
+  public long getCreditCardApprovedBy() {
+    return creditCardApprovedBy;
   }
 
   /**

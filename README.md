@@ -4,9 +4,13 @@
 
 We prefer it if the customers use a beet farm as colatoral (for no reason in particular, just who doesn't like beets)
 
+Loan and credit cards openings need to be approved by a teller (not an atm teller either)
+
+No need to store the date the loan was opened in the database as that is already contained within the loan initial transaction. Same with amount loaned. 
+
 A user can only have loan colatoral with a name that is up to fifteen characters long due to the size of the varchar in the db. This could be increased but we believe 15 characters is sufficient to express what the colatoral is. 
 
-A user can only have $1,000,000 due total for loans. This isn't a database constraint since we are willing to loan more money but that would require more vetting not possible within this interface (i.e. face to face)
+A user can only have $1,000,000 due total for loans. This isn't a database constraint since we are willing to loan more money but that would require more vetting not possible within this interface (i.e. talk with the ceo or something)
 
 The cash a user receives from a loan is mailed to them as a check. (very secure)
 

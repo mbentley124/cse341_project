@@ -56,14 +56,15 @@ public class DataGenerator {
 	static String[] employeeNames = new String[] { "Bob Vance", "Dwigt Schrute", "Michael Scott", "Andy Bernard" };
 
 	public static long insertEmployee(long id, String name, long loc_id, double wage, boolean insertOnlyEmployee,
-			Connection conn) {
+			boolean is_atm, Connection conn) {
 		if (!insertOnlyEmployee) {
 			id = insertPerson(name, conn);
 		}
-		try (PreparedStatement insert_teller = conn.prepareStatement("INSERT INTO teller VALUES (?, ?, ?)")) {
+		try (PreparedStatement insert_teller = conn.prepareStatement("INSERT INTO teller VALUES (?, ?, ?, ?)")) {
 			insert_teller.setLong(1, id);
 			insert_teller.setLong(2, loc_id);
-			insert_teller.setDouble(3, wage);
+			insert_teller.setInt(3, is_atm ? 1 : 0);
+			insert_teller.setDouble(4, wage);
 			insert_teller.execute();
 		} catch (SQLException e) {
 			e.printStackTrace();
@@ -106,16 +107,18 @@ public class DataGenerator {
 
 	static String[] collatoralNames = new String[] { "Farm", "Sprinkles", "Refridgerator", "House" };
 
-	public static long insertAccount(double balance, double interest_rate, Integer minimum_balance, Integer penalty,
-			long[] account_holders, Connection conn) {
+	public static long insertAccount(double balance, double interest_rate, Timestamp opened_date, Integer minimum_balance,
+			Integer penalty, long[] account_holders, Connection conn) {
 		try (
 				PreparedStatement insert_account = conn.prepareStatement(
-						"INSERT INTO account (balance, acc_interest_rate) VALUES (?, ?)", new String[] { "acc_id" });
+						"INSERT INTO account (balance, acc_interest_rate, acc_opened_date) VALUES (?, ?, ?)",
+						new String[] { "acc_id" });
 				PreparedStatement insert_checking = conn.prepareStatement("INSERT INTO checking VALUES (?)");
 				PreparedStatement insert_savings = conn.prepareStatement("INSERT INTO savings VALUES (?, ?, ?)");
 				PreparedStatement insert_account_holder = conn.prepareStatement("INSERT INTO account_holder VALUES (?, ?)")) {
 			insert_account.setDouble(1, balance);
 			insert_account.setDouble(2, interest_rate);
+			insert_account.setTimestamp(3, opened_date);
 			insert_account.execute();
 			ResultSet results = insert_account.getGeneratedKeys();
 			results.next();
@@ -175,15 +178,18 @@ public class DataGenerator {
 	}
 
 	public static long insertCreditCard(String name, Timestamp opened_date, long cardholder_id,
-			double credit_interest_rate, int credit_limit, double balance_due, double rolling_balance, Connection conn) {
+			double credit_interest_rate, int credit_limit, double balance_due, double rolling_balance, long approved_by_id,
+			Connection conn) {
+		System.out.println("CREDIT LIMIT: " + credit_limit + ", ROLLING BALANCE: " + rolling_balance);
 		long card_id = insertCard(name, cardholder_id, opened_date, conn);
 		try (PreparedStatement insert_credit_card = conn
-				.prepareStatement("INSERT INTO credit_card VALUES (?, ?, ?, ?, ?)")) {
+				.prepareStatement("INSERT INTO credit_card VALUES (?, ?, ?, ?, ?, ?)")) {
 			insert_credit_card.setLong(1, card_id);
 			insert_credit_card.setDouble(2, credit_interest_rate);
 			insert_credit_card.setInt(3, credit_limit);
 			insert_credit_card.setDouble(4, balance_due);
 			insert_credit_card.setDouble(5, rolling_balance);
+			insert_credit_card.setLong(6, approved_by_id);
 			insert_credit_card.execute();
 		} catch (Exception e) {
 			e.printStackTrace();
@@ -237,45 +243,27 @@ public class DataGenerator {
 			// Insert locations and their tellers.
 			for (int i = 0; i < locationNames.length; i++) {
 				long loc_id = insertLocation(locationNames[i], conn);
-				long atm_id = insertEmployee(-1, locationNames[i] + " ATM", loc_id, 0, false, conn);
+				long atm_id = insertEmployee(-1, locationNames[i] + " ATM", loc_id, 0, false, true, conn);
 				atm_ids[i] = atm_id;
 				location_ids[i] = loc_id;
 				if (i + 1 == locationNames.length) {
 					for (int x = i - 1; x < employeeNames.length; x++) {
 						// int emp_id = x + customerNames.length - 1;
-						employee_ids.add(insertEmployee(-1, employeeNames[x], loc_id, (random.nextDouble() + 1) * 10, false, conn));
+						employee_ids
+								.add(insertEmployee(-1, employeeNames[x], loc_id, (random.nextDouble() + 1) * 10, false, false, conn));
 					}
 				} else if (i > 0) {
 					long emp_id = -1;
 					if (i == 1) {
 						emp_id = customer_ids[customer_ids.length - 1];
 					}
-					employee_ids
-							.add(insertEmployee(emp_id, employeeNames[i - 1], loc_id, (random.nextDouble() + 1) * 10, i == 1, conn));
+					employee_ids.add(insertEmployee(emp_id, employeeNames[i - 1], loc_id, (random.nextDouble() + 1) * 10, i == 1,
+							false, conn));
 				}
 			}
 
 			List<Long> teller_ids = new ArrayList<>(employee_ids);
 			teller_ids.addAll(Arrays.asList(atm_ids));
-
-			// From loans id to loan holder id.
-			Map<Long, Long> loanholder_ids = new HashMap<>(); // long[] loanholder_ids = new long[TOTAL_LOANS];
-
-			// Insert TOTAL_LOANS loans
-			for (int i = 0; i < TOTAL_LOANS; i++) {
-				String collatoral = null;
-				if (random.nextDouble() > 0.5) {
-					collatoral = getRandomArrayVal(collatoralNames);
-				}
-				long loanholder_id = getRandomArrayVal(customer_ids);
-				double loan_interest = random.nextDouble() * 10;
-				double amount_loaned = (random.nextDouble() * 50000) + 5000;
-				double amount_due = amount_loaned - (random.nextDouble() * 5000);
-				double monthly_payment = (random.nextDouble() * 200) + 50;
-				long l_id = ConnectionManager.insertLoan(loanholder_id, loan_interest, amount_loaned, amount_due,
-						monthly_payment, collatoral, conn);
-				loanholder_ids.put(l_id, loanholder_id);
-			}
 
 			// From account holder id to their account ids.
 			Map<Long, List<Long>> account_holder_ids = new HashMap<>();
@@ -309,7 +297,8 @@ public class DataGenerator {
 					// One account holder
 					accountHolders = new long[] { getRandomArrayVal(customer_ids) };
 				}
-				long acc_id = insertAccount(balance, interest_rate, minimum_balance, penalty, accountHolders, conn);
+				long acc_id = insertAccount(balance, interest_rate, generateRandomTimestampBetweenYears(2011, 2017),
+						minimum_balance, penalty, accountHolders, conn);
 				account_ids[i] = acc_id;
 				if (minimum_balance == null) {
 					checking_account_ids.add(acc_id);
@@ -320,6 +309,44 @@ public class DataGenerator {
 					account_holder_ids.put(account_holder, current_account_ids);
 				}
 				// complete_account_holders[i] = accountHolders;
+			}
+
+			// From loans id to loan holder id.
+			Map<Long, Long> loanholder_ids = new HashMap<>(); // long[] loanholder_ids = new long[TOTAL_LOANS];
+
+			// Insert TOTAL_LOANS loans
+			for (int i = 0; i < TOTAL_LOANS; i++) {
+				String collatoral = null;
+				if (random.nextDouble() > 0.5) {
+					collatoral = getRandomArrayVal(collatoralNames);
+				}
+				long loanholder_id = getRandomArrayVal(customer_ids);
+				double loan_interest = random.nextDouble() * 10;
+				double amount_loaned = (random.nextDouble() * 50000) + 5000;
+				double amount_due = amount_loaned - (random.nextDouble() * 5000);
+				double monthly_payment = (random.nextDouble() * 200) + 50;
+				long aproving_teller_id = getRandomArrayVal(employee_ids.toArray(new Long[0]));
+
+				long t_id = ConnectionManager.insertTransaction(amount_loaned, generateRandomTimestampBetweenYears(2019, 2020),
+						conn);
+
+				boolean insertCashSide = true;
+				if (random.nextDouble() > 0.5) {
+					List<Long> accounts = account_holder_ids.get(loanholder_id);
+					if (accounts != null) {
+						insertCashSide = false;
+						long acc_id = getRandomArrayVal(accounts.toArray(new Long[0]));
+						ConnectionManager.insertAccountDeposit(t_id, acc_id, aproving_teller_id, conn);
+					}
+				}
+				if (insertCashSide) {
+					long loc_id = getRandomArrayVal(location_ids);
+					ConnectionManager.insertCashTransaction(t_id, loc_id, conn);
+				}
+
+				long l_id = ConnectionManager.insertLoan(loanholder_id, loan_interest, amount_due, monthly_payment, collatoral,
+						aproving_teller_id, t_id, conn);
+				loanholder_ids.put(l_id, loanholder_id);
 			}
 
 			Map<Long, Long> credit_card_holders = new HashMap<>();
@@ -334,11 +361,12 @@ public class DataGenerator {
 					// Credit card
 					long cardholder_id = getRandomArrayVal(customer_ids);
 					double credit_interest_rate = (random.nextDouble() * 12) + 1;
-					int credit_limit = (int) (Math.floor(random.nextDouble() * 5) + 1) * 500;
+					int credit_limit = (int) (Math.floor(random.nextDouble() * 5) + 1) * 500 + 500;
 					double balance_due = random.nextDouble() * 500;
 					double rolling_balance = random.nextDouble() * 500 + balance_due;
+					long approved_by = getRandomArrayVal(employee_ids.toArray(new Long[0]));
 					Long card_id = insertCreditCard(card_name, opened_timestamp, cardholder_id, credit_interest_rate,
-							credit_limit, balance_due, rolling_balance, conn);
+							credit_limit, balance_due, rolling_balance, approved_by, conn);
 					credit_card_holders.put(card_id, cardholder_id);
 					card_ids[i] = card_id;
 				} else {

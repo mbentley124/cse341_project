@@ -13,7 +13,7 @@ public class Bank {
       conn.setAutoCommit(false);
       boolean exit = false;
       while (!exit) {
-        String input = Input.prompt("Hello! What interface would you like to use?",
+        String input = Input.prompt("Hello! What interface would you like to use? (quit/back to exit)",
             new String[] { "Account deposit/withdrawal", "Card Purchasing", "Takeout Loan" });
         if (Input.isBackSet() || Input.isQuitSet()) {
           exit = true;

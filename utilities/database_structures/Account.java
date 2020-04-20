@@ -3,18 +3,21 @@ package utilities.database_structures;
 import java.sql.CallableStatement;
 import java.sql.Connection;
 import java.sql.SQLException;
+import java.sql.Timestamp;
 
 import utilities.ConnectionManager;
 
 public abstract class Account {
   private long accId;
+  private Timestamp accOpenedDate;
   protected double balance;
   protected double accInterestRate;
 
-  public Account(long acc_id, double balance, double acc_interest_rate) {
+  public Account(long acc_id, double balance, double acc_interest_rate, Timestamp acc_opened_date) {
     this.accId = acc_id;
     this.balance = balance;
     this.accInterestRate = acc_interest_rate;
+    this.accOpenedDate = acc_opened_date;
   }
 
   /**
@@ -22,6 +25,13 @@ public abstract class Account {
    */
   public long getAccId() {
     return accId;
+  }
+
+  /**
+   * @return the account Opened Date
+   */
+  public Timestamp getAccOpenedDate() {
+    return accOpenedDate;
   }
 
   /**

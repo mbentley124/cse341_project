@@ -55,8 +55,9 @@ public class ResultSetConverter {
       double acc_interest_rate = rs.getDouble("acc_interest_rate");
       int minimum_balance = rs.getInt("minimum_balance");
       int penalty = rs.getInt("penalty");
+      Timestamp opened_date = rs.getTimestamp("acc_opened_date");
 
-      out.add(new SavingsAccount(acc_id, balance, acc_interest_rate, minimum_balance, penalty));
+      out.add(new SavingsAccount(acc_id, balance, acc_interest_rate, minimum_balance, penalty, opened_date));
     }
     return out;
   }
@@ -73,8 +74,9 @@ public class ResultSetConverter {
       double credit_limit = rs.getDouble("credit_limit");
       double balance_due = rs.getDouble("balance_due");
       double rolling_balance = rs.getDouble("rolling_balance");
+      long approved_by = rs.getLong("credit_card_approved_by");
       out.add(new CreditCard(card_id, card_name, card_opened_date, card_holder_id, credit_interest_rate, credit_limit,
-          balance_due, rolling_balance));
+          balance_due, rolling_balance, approved_by));
 
     }
     return out;
@@ -98,8 +100,9 @@ public class ResultSetConverter {
         double credit_limit = rs.getDouble("credit_limit");
         double balance_due = rs.getDouble("balance_due");
         double rolling_balance = rs.getDouble("rolling_balance");
+        long approved_by = rs.getLong("credit_card_approved_by");
         out.add(new CreditCard(card_id, card_name, card_opened_date, card_holder_id, credit_interest_rate, credit_limit,
-            balance_due, rolling_balance));
+            balance_due, rolling_balance, approved_by));
       }
     }
     return out;
@@ -112,13 +115,15 @@ public class ResultSetConverter {
       double balance = rs.getDouble("balance");
       double acc_interest_rate = rs.getDouble("acc_interest_rate");
       int minimum_balance = rs.getInt("minimum_balance");
+      Timestamp opened_date = rs.getTimestamp("acc_opened_date");
+
       int penalty = rs.getInt("penalty");
       if (rs.wasNull()) {
         // Checking account (If penalty was null)
-        out.add(new CheckingAccount(acc_id, balance, acc_interest_rate));
+        out.add(new CheckingAccount(acc_id, balance, acc_interest_rate, opened_date));
       } else {
         // Savings account
-        out.add(new SavingsAccount(acc_id, balance, acc_interest_rate, minimum_balance, penalty));
+        out.add(new SavingsAccount(acc_id, balance, acc_interest_rate, minimum_balance, penalty, opened_date));
       }
     }
     return out;
@@ -130,8 +135,10 @@ public class ResultSetConverter {
       long acc_id = rs.getLong("acc_id");
       double balance = rs.getDouble("balance");
       double acc_interest_rate = rs.getDouble("acc_interest_rate");
+      Timestamp opened_date = rs.getTimestamp("acc_opened_date");
+
       // Checking account
-      out.add(new CheckingAccount(acc_id, balance, acc_interest_rate));
+      out.add(new CheckingAccount(acc_id, balance, acc_interest_rate, opened_date));
     }
     return out;
   }
@@ -140,8 +147,8 @@ public class ResultSetConverter {
     List<Teller> out = new ArrayList<>();
 
     while (rs.next()) {
-      out.add(
-          new Teller(rs.getLong("p_id"), rs.getString("full_name"), rs.getLong("teller_loc_id"), rs.getDouble("wage")));
+      out.add(new Teller(rs.getLong("p_id"), rs.getString("full_name"), rs.getLong("teller_loc_id"),
+          rs.getDouble("wage"), rs.getInt("is_atm") == 1));
     }
 
     return out;

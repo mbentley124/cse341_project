@@ -4,11 +4,13 @@ public class Teller extends Person {
 
   long tellerLocId;
   double wage;
+  boolean isAtm;
 
-  public Teller(long p_id, String full_name, long teller_loc_id, double wage) {
+  public Teller(long p_id, String full_name, long teller_loc_id, double wage, boolean is_atm) {
     super(p_id, full_name);
     this.tellerLocId = teller_loc_id;
     this.wage = wage;
+    this.isAtm = is_atm;
   }
 
   /**
@@ -25,8 +27,11 @@ public class Teller extends Person {
     return wage;
   }
 
+  /**
+   * @return if this is an atm
+   */
   public boolean isAtm() {
-    return this.getFullName().endsWith(" ATM") && wage == 0;
+    return isAtm;
   }
 
   @Override

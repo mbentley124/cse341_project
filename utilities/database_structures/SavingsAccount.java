@@ -3,6 +3,7 @@ package utilities.database_structures;
 import java.sql.Connection;
 import java.sql.PreparedStatement;
 import java.sql.SQLException;
+import java.sql.Timestamp;
 import java.util.List;
 
 import utilities.ResultSetConverter;
@@ -12,8 +13,9 @@ public class SavingsAccount extends Account {
   private int minimumBalance;
   private int penalty;
 
-  public SavingsAccount(long acc_id, double balance, double acc_interest_rate, int minimum_balance, int penalty) {
-    super(acc_id, balance, acc_interest_rate);
+  public SavingsAccount(long acc_id, double balance, double acc_interest_rate, int minimum_balance, int penalty,
+      Timestamp acc_opened_date) {
+    super(acc_id, balance, acc_interest_rate, acc_opened_date);
     this.minimumBalance = minimum_balance;
     this.penalty = penalty;
   }
