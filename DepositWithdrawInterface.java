@@ -58,7 +58,10 @@ public class DepositWithdrawInterface {
   public static void promptAccount(Connection conn, Customer customer) {
     System.out.print("Welcome " + customer.getFullName() + "! ");
     List<Account> accounts = customer.selectAccounts(conn);
-    if (accounts.size() == 0) {
+    if (accounts == null) {
+      System.out.println("Error retrieving your accounts");
+      promptCustomerName(conn);
+    } else if (accounts.size() == 0) {
       System.out.println("You don't seem to have any accounts with us! Please login as someone else");
       promptCustomerName(conn);
     } else {
@@ -77,6 +80,11 @@ public class DepositWithdrawInterface {
 
   public static void promptLocation(Connection conn, Customer customer, Account account) {
     List<Location> locations = ConnectionManager.selectAllLocations(conn);
+    if (locations == null) {
+      System.out.println("Error retrieving locations");
+      promptAccount(conn, customer);
+      return;
+    }
     Location location = Input.prompt("What location are you withdrawing from?", locations.toArray(new Location[0]));
     if (Input.isBackSet()) {
       promptAccount(conn, customer);
@@ -93,7 +101,10 @@ public class DepositWithdrawInterface {
 
   public static void pathFromLocationTellers(Connection conn, Customer customer, Account account, Location location) {
     List<Teller> compatible_tellers = location.selectTellers(conn);
-    if (compatible_tellers.size() == 1) {
+    if (compatible_tellers == null) {
+      System.out.println("Error retrieving location's tellers");
+      promptLocation(conn, customer, account);
+    } else if (compatible_tellers.size() == 1) {
       System.out.println("This location only has an ATM which only supports deposits");
       accountDeposit(conn, customer, account, location, compatible_tellers.get(0), BackMethod.PROMPT_LOCATION);
     } else {
@@ -109,7 +120,6 @@ public class DepositWithdrawInterface {
           promptWithdrawOrDeposit(conn, customer, account, location, teller);
         }
       }
-      // promptWithdrawOrDeposit(conn, customer, account, location);
     }
   }
 
@@ -135,6 +145,11 @@ public class DepositWithdrawInterface {
   public static void accountTransferSelection(Connection conn, Customer customer, Account account, Location location,
       Teller teller) {
     List<Account> other_accounts = customer.selectAccounts(conn);
+    if (other_accounts == null) {
+      System.out.println("Error retrieving your other accounts");
+      promptWithdrawOrDeposit(conn, customer, account, location, teller);
+      return;
+    }
     other_accounts.removeIf(acc -> acc.getAccId() == account.getAccId());
     if (other_accounts.size() == 0) {
       System.out.println("You don't have any accounts to transfer from.");
@@ -142,7 +157,13 @@ public class DepositWithdrawInterface {
     } else {
       Account transfering_account = Input.prompt("Which account would you like to transfer money from?",
           other_accounts.toArray(new Account[0]));
-      accountMoneyTransfer(conn, customer, transfering_account, account, location, teller);
+      if (Input.isBackSet()) {
+        promptWithdrawOrDeposit(conn, customer, account, location, teller);
+      } else if (Input.isQuitSet()) {
+        return;
+      } else {
+        accountMoneyTransfer(conn, customer, transfering_account, account, location, teller);
+      }
     }
   }
 
@@ -166,8 +187,8 @@ public class DepositWithdrawInterface {
         }
         to_account.refresh(conn);
         from_account.refresh(conn);
-        System.out.println("You have transfered $" + transfer_amount + ". You now have $" + to_account.getBalance() + " in "
-            + to_account.toString() + " and $" + from_account.getBalance() + " in " + from_account.toString());
+        System.out.println("You have transfered $" + transfer_amount + ". You now have $" + to_account.getBalance()
+            + " in " + to_account.toString() + " and $" + from_account.getBalance() + " in " + from_account.toString());
         promptWithdrawOrDeposit(conn, customer, to_account, location, teller);
       }
     }
@@ -190,8 +211,8 @@ public class DepositWithdrawInterface {
           System.out.println("There is a $" + penalty + " penalty for this withdrawal");
         }
         account.refresh(conn);
-        System.out
-            .println("You have withdrew $" + withdraw_amount + ". You now have $" + account.getBalance() + " in your account.");
+        System.out.println(
+            "You have withdrew $" + withdraw_amount + ". You now have $" + account.getBalance() + " in your account.");
         promptWithdrawOrDeposit(conn, customer, account, location, teller);
       }
     }
@@ -210,8 +231,8 @@ public class DepositWithdrawInterface {
         System.out.println("Unable to make deposit!");
       } else {
         account.refresh(conn);
-        System.out
-            .println("You have deposited $" + deposit_amount + ". You now have $" + account.getBalance() + " in your account.");
+        System.out.println(
+            "You have deposited $" + deposit_amount + ". You now have $" + account.getBalance() + " in your account.");
       }
       goBack(conn, customer, account, location, teller, back_method);
     }

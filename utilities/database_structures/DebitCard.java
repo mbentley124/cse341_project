@@ -46,7 +46,8 @@ public class DebitCard extends Card {
         account = accounts.get(0);
       }
     } catch (SQLException e) {
-      e.printStackTrace();
+      // e.printStackTrace();
+      return null;
     }
     return account;
   }

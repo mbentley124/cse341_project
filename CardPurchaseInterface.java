@@ -38,7 +38,10 @@ public class CardPurchaseInterface {
 
   public static void promptCard(Connection conn, Customer customer) {
     List<Card> cards = customer.selectCards(conn);
-    if (cards.size() == 0) {
+    if (cards == null) {
+      System.out.println("There was an error retrieving your cards");
+      promptCustomerName(conn);
+    } else if (cards.size() == 0) {
       System.out.println("You don't have any cards with us. Please login with a different user");
       promptCustomerName(conn);
     } else {
@@ -116,8 +119,9 @@ public class CardPurchaseInterface {
   }
 
   public static void promptTransactionCompletion(Connection conn, Customer customer) {
-    String option = Input.prompt("Would you like to make another purchase?", new String[] { "Yes", "No" });
-    if (Input.isBackSet() || Input.isQuitSet() || option.equals("No")) {
+    Boolean anotherPurchase = Input.promptBoolean("Would you like to make another purchase?");
+    if (Input.isBackSet() || Input.isQuitSet() || !anotherPurchase) {
+      // TODO maybe back should move the user to the previous screen?
       return;
     } else {
       promptCard(conn, customer);

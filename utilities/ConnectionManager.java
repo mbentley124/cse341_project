@@ -50,7 +50,7 @@ public class ConnectionManager {
       customers = ResultSetConverter.toCustomers(search.executeQuery());
     } catch (SQLException e) {
       // TODO exit quietly.
-      e.printStackTrace();
+      return null;
     }
     return customers;
   }
@@ -70,7 +70,8 @@ public class ConnectionManager {
       vendor_list = ResultSetConverter.toVendors(select.executeQuery());
     } catch (SQLException e) {
       // TODO exit quietly
-      e.printStackTrace();
+      // e.printStackTrace();
+      return null;
     }
     return vendor_list;
   }
@@ -88,7 +89,28 @@ public class ConnectionManager {
       locations = ResultSetConverter.toLocations(dept_search.executeQuery());
     } catch (SQLException e) {
       // TODO exit quietly.
-      e.printStackTrace();
+      // e.printStackTrace();
+      return null;
+    }
+    return locations;
+  }
+
+  /**
+   * Selects all the locations which have at least one human teller.
+   * 
+   * @param conn The db connection.
+   * @return Locations with at least one human teller (null on failure)
+   */
+  public static List<Location> selectLocationsWithHumanTellers(Connection conn) {
+    List<Location> locations = new ArrayList<>();
+
+    try (PreparedStatement select = conn.prepareStatement(
+        "SELECT UNIQUE loc_id, loc_name FROM location JOIN teller ON teller_loc_id = loc_id AND teller.is_atm = 0")) {
+      locations = ResultSetConverter.toLocations(select.executeQuery());
+    } catch (SQLException e) {
+      // TODO exit quietly.
+      // e.printStackTrace();
+      return null;
     }
     return locations;
   }
@@ -188,7 +210,7 @@ public class ConnectionManager {
       }
     } catch (SQLException e) {
       // TODO Auto-generated catch block
-      e.printStackTrace();
+      // e.printStackTrace();
       return -1;
     }
     return penalty;
@@ -217,6 +239,82 @@ public class ConnectionManager {
       // e.printStackTrace();
     }
     return penalty;
+  }
+
+  /**
+   * Inserts the appropriate entries into the database to represent a customer
+   * taking out a loan and putting the money into cash. This does commit to the
+   * db. If collatoral is null then not a secured loan. The transaction is dated
+   * to the current time.
+   * 
+   * 
+   * @param conn               The db connection
+   * @param loanholder         The customer who is taking out the loan
+   * @param collatoral         The colatoral (null if not a secured loan)
+   * @param loan_interest_rate The loan interest rate
+   * @param amount             The amount loaned and the amount due for the loan
+   * @param monthly_payment    Minimum monthly payment due
+   * @param approving_teller   The teller approving the loan/deposit
+   * @param location           The location the customer is receiving the money
+   *                           at.
+   * @return True if succeeded and committed.
+   */
+  public static boolean insertLoanCashTakeout(Connection conn, Customer loanholder, String collatoral,
+      double loan_interest_rate, double amount, double monthly_payment, Teller approving_teller, Location location) {
+    try {
+      long t_id = insertTransaction(amount, now(), conn);
+      boolean success = (t_id != -1);
+      success = success && insertCashTransaction(t_id, location.getLocId(), conn);
+      success = success && (-1 != insertLoan(loanholder.getPId(), loan_interest_rate, amount, monthly_payment,
+          collatoral, approving_teller.getPId(), t_id, conn));
+      if (success) {
+        conn.commit();
+        return true;
+      } else {
+        conn.rollback();
+      }
+    } catch (SQLException e) {
+      // e.printStackTrace();
+    }
+    return false;
+  }
+
+  /**
+   * Inserts the appropriate entries into the database to represent a customer
+   * taking out a loan and putting the money into an account (either checking or
+   * savings). This does commit to the db. If collatoral is null then not a
+   * secured loan. The transaction is dated to the current time.
+   * 
+   * @param conn               The db connection
+   * @param loanholder         The customer who is taking out the loan
+   * @param account            The account the money from the loan is deposited
+   *                           into
+   * @param collatoral         The colatoral (null if not a secured loan)
+   * @param loan_interest_rate The loan interest rate
+   * @param amount             The amount loaned and the amount due for the loan
+   * @param monthly_payment    Minimum monthly payment due
+   * @param approving_teller   The teller approving the loan/deposit
+   * @return True if succeeded and committed.
+   */
+  public static boolean insertLoanAccountTakeout(Connection conn, Customer loanholder, Account account,
+      String collatoral, double loan_interest_rate, double amount, double monthly_payment, Teller approving_teller) {
+    try {
+      long t_id = insertTransaction(amount, now(), conn);
+      boolean success = (t_id != -1);
+      success = success && insertAccountDeposit(t_id, account.getAccId(), approving_teller.getPId(), conn);
+      success = success && (-1 != insertLoan(loanholder.getPId(), loan_interest_rate, amount, monthly_payment,
+          collatoral, approving_teller.getPId(), t_id, conn));
+      success = success && account.dbDepositBalance(amount, conn);
+      if (success) {
+        conn.commit();
+        return true;
+      } else {
+        conn.rollback();
+      }
+    } catch (SQLException e) {
+      // e.printStackTrace();
+    }
+    return false;
   }
 
   /**
@@ -288,7 +386,7 @@ public class ConnectionManager {
       }
     } catch (SQLException e) {
       // TODO Auto-generated catch block
-      e.printStackTrace();
+      // e.printStackTrace();
       return -1;
     }
 
@@ -313,7 +411,7 @@ public class ConnectionManager {
       results.next();
       return results.getLong(1);
     } catch (Exception e) {
-      e.printStackTrace();
+      // e.printStackTrace();
     }
     return -1;
   }
@@ -335,7 +433,7 @@ public class ConnectionManager {
       insert.execute();
       return true;
     } catch (Exception e) {
-      e.printStackTrace();
+      // e.printStackTrace();
       return false;
     }
   }
@@ -358,7 +456,7 @@ public class ConnectionManager {
       insert.execute();
       return true;
     } catch (Exception e) {
-      e.printStackTrace();
+      // e.printStackTrace();
       return false;
     }
   }
@@ -381,7 +479,7 @@ public class ConnectionManager {
       insert.execute();
       return true;
     } catch (Exception e) {
-      e.printStackTrace();
+      // e.printStackTrace();
       return false;
     }
   }
@@ -410,7 +508,7 @@ public class ConnectionManager {
   }
 
   /**
-   * Inserts a loan into the db. Does NOT autocommit. 
+   * Inserts a loan into the db. Does NOT autocommit.
    * 
    * @param loanholder_id   The id of the person taking out the loan
    * @param interest_rate   The interest rate of the loan.
@@ -445,7 +543,7 @@ public class ConnectionManager {
       }
       return loan_id;
     } catch (Exception e) {
-      e.printStackTrace();
+      // e.printStackTrace();
     }
     return -1;
   }

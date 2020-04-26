@@ -1,10 +1,14 @@
 # cse341_project
 
+Michael Bentley
+
 ## About the bank
 
 We prefer it if the customers use a beet farm as colatoral (for no reason in particular, just who doesn't like beets)
 
 Loan and credit cards openings need to be approved by a teller (not an atm teller either)
+
+Loans over $100,000 require colatoral. 
 
 No need to store the date the loan was opened in the database as that is already contained within the loan initial transaction. Same with amount loaned. 
 

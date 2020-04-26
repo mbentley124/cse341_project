@@ -93,7 +93,7 @@ public abstract class Account {
       return true;
     } catch (SQLException e) {
       // TODO
-      e.printStackTrace();
+      // e.printStackTrace();
       return false;
     }
   }

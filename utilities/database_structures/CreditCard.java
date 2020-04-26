@@ -53,7 +53,7 @@ public class CreditCard extends Card {
       }
     } catch (SQLException e) {
       // TODO
-      e.printStackTrace();
+      // e.printStackTrace();
     }
     return false;
   }
@@ -115,7 +115,7 @@ public class CreditCard extends Card {
       return true;
     } catch (SQLException e) {
       // TODO
-      e.printStackTrace();
+      // e.printStackTrace();
       return false;
     }
   }

@@ -44,7 +44,7 @@ public class Customer extends Person {
       }
     } catch (SQLException e) {
       // TODO
-      e.printStackTrace();
+      // e.printStackTrace();
     }
     return null;
   }
@@ -67,7 +67,7 @@ public class Customer extends Person {
       }
     } catch (SQLException e) {
       // TODO
-      e.printStackTrace();
+      // e.printStackTrace();
     }
     return null;
   }
@@ -86,7 +86,8 @@ public class Customer extends Person {
       cards = ResultSetConverter.toCards(select.executeQuery());
     } catch (SQLException e) {
       // TODO exit quietly
-      e.printStackTrace();
+      // e.printStackTrace();
+      return null;
     }
     return cards;
   }
@@ -109,7 +110,8 @@ public class Customer extends Person {
 
     } catch (SQLException e) {
       // TODO exit quietly.
-      e.printStackTrace();
+      // e.printStackTrace();
+      return null;
     }
     return accounts;
   }

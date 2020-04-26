@@ -1,6 +1,6 @@
 package utilities.database_structures;
 
-public class Person {
+public abstract class Person {
 
   private String fullName;
   private long pId;

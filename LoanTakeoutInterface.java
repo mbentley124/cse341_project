@@ -1,6 +1,10 @@
 import java.sql.Connection;
+import java.util.List;
 
+import utilities.database_structures.Account;
 import utilities.database_structures.Customer;
+import utilities.database_structures.Location;
+import utilities.database_structures.Teller;
 import utilities.ConnectionManager;
 import utilities.Input;
 
@@ -24,7 +28,7 @@ public class LoanTakeoutInterface {
    * otherwise its ambiguious where back goes to.
    */
   private enum BackMethod {
-    LOAN_AMOUNT, HAS_COLATORAL, GET_COLATORAL
+    TELLER, LOCATION, LOAN_AMOUNT, ACCOUNT_OR_CASH, WHICH_ACCOUNT, HAS_COLATORAL, GET_COLATORAL
   }
 
   public static void run(Connection conn) {
@@ -38,11 +42,60 @@ public class LoanTakeoutInterface {
     if (Input.isBackSet() || Input.isQuitSet()) {
       return;
     } else {
-      loanAmount(conn, customer);
+      location(conn, customer);
     }
   }
 
-  public static void loanAmount(Connection conn, Customer customer) {
+  public static void location(Connection conn, Customer customer) {
+    List<Location> locations = ConnectionManager.selectLocationsWithHumanTellers(conn);
+    if (locations == null) {
+      System.out.println("Error retrieving compatible locations");
+      loginCustomer(conn);
+      return;
+    }
+    Location location = Input.prompt("Which location are you at?", locations.toArray(new Location[0]));
+    if (Input.isBackSet()) {
+      loginCustomer(conn);
+    } else if (Input.isQuitSet()) {
+      return;
+    } else {
+      teller(conn, customer, location);
+    }
+  }
+
+  public static void teller(Connection conn, Customer customer, Location location) {
+    List<Teller> tellers = location.selectTellers(conn);
+    if (tellers == null) {
+      System.out.println("Error retreiving tellers");
+      location(conn, customer);
+      return;
+    }
+    tellers.removeIf((teller) -> teller.isAtm());
+    // At least one teller has to work at the selected location since only locations
+    // were shown with at least one human teller. So the first part of the if
+    // statement should never be reached. I just kept this here since I already had
+    // it, and there is little reason to remove it.
+    if (tellers.size() == 0) {
+      System.out.println("I'm Sorry. That location does not support loans. No tellers work there.");
+      location(conn, customer);
+    } else if (tellers.size() == 1) {
+      System.out
+          .println(tellers.get(0) + " is the only teller that works at that location. You must be working with them");
+      loanAmount(conn, customer, location, tellers.get(0), BackMethod.LOCATION);
+    } else {
+      Teller teller = Input.prompt("Which teller are you working with?", tellers.toArray(new Teller[0]));
+      if (Input.isBackSet()) {
+        location(conn, customer);
+      } else if (Input.isQuitSet()) {
+        return;
+      } else {
+        loanAmount(conn, customer, location, teller, BackMethod.TELLER);
+      }
+    }
+  }
+
+  public static void loanAmount(Connection conn, Customer customer, Location location, Teller teller,
+      BackMethod amount_back_method) {
     // We don't want a single customer to have too much money loaned out to them.
     Double outstanding_loan_amount = customer.getNetLoanAmountDue(conn);
     if (outstanding_loan_amount == null) {
@@ -60,45 +113,115 @@ public class LoanTakeoutInterface {
       // however it would need a far more complicated method of going back to allow
       // the user to go back to somewhere else. (Something along the lines of a stack
       // with every method that has been called and with what arguments)
-      loginCustomer(conn);
+      goBack(amount_back_method, conn, customer, location, teller, amount_back_method, loan_amount, null, null, null,
+          null);
     } else if (Input.isQuitSet()) {
       return;
     } else if (outstanding_loan_amount + loan_amount >= 1000000) {
       System.out.println(
           "Woah woah woah! This is nickel savings bank! We don't have that amount of cash on us. (total outstanding loans are limited to $1,000,000)");
-      loanAmount(conn, customer);
+      loanAmount(conn, customer, location, teller, amount_back_method);
     } else {
+      accountOrCash(conn, customer, location, teller, amount_back_method, loan_amount);
+    }
+  }
+
+  public static void accountOrCash(Connection conn, Customer customer, Location location, Teller teller,
+      BackMethod amount_back_method, double loan_amount) {
+    List<Account> accounts = customer.selectAccounts(conn);
+    if (accounts == null) {
+      System.out.println("Error finding your accounts");
+      loanAmount(conn, customer, location, teller, amount_back_method);
+    } else if (accounts.size() == 0) {
+      System.out.println("You do not have an account with us, so you will receive this money as cold hard cash");
       if (loan_amount > 100000) {
         // Colatoral required
-        getColatoral(conn, customer, loan_amount, BackMethod.GET_COLATORAL);
+        getColatoral(conn, customer, location, teller, amount_back_method, loan_amount, accounts, null, null,
+            BackMethod.LOAN_AMOUNT);
       } else {
         // Colatoral customers choice
-        hasColatoral(conn, customer, loan_amount);
+        hasColatoral(conn, customer, location, teller, amount_back_method, loan_amount, accounts, null,
+            BackMethod.LOAN_AMOUNT);
+      }
+    } else {
+      String choice = Input.prompt("Would you like to receive you money in cash or in one of your accounts with us",
+          new String[] { "Cash", "Account" });
+      if (Input.isBackSet()) {
+        loanAmount(conn, customer, location, teller, amount_back_method);
+      } else if (Input.isQuitSet()) {
+        return;
+      } else if (choice.equals("Cash")) {
+        if (loan_amount > 100000) {
+          // Colatoral required
+          getColatoral(conn, customer, location, teller, amount_back_method, loan_amount, accounts, null, null,
+              BackMethod.ACCOUNT_OR_CASH);
+        } else {
+          // Colatoral customers choice
+          hasColatoral(conn, customer, location, teller, amount_back_method, loan_amount, accounts, null,
+              BackMethod.ACCOUNT_OR_CASH);
+        }
+      } else {
+        whichAccount(conn, customer, location, teller, amount_back_method, loan_amount, accounts);
       }
     }
   }
 
-  public static void hasColatoral(Connection conn, Customer customer, double loan_amount) {
+  public static void whichAccount(Connection conn, Customer customer, Location location, Teller teller,
+      BackMethod amount_back_method, double loan_amount, List<Account> accounts) {
+    if (accounts.size() > 1) {
+      Account account = Input.prompt("Which account?", accounts.toArray(new Account[0]));
+      if (Input.isBackSet()) {
+        accountOrCash(conn, customer, location, teller, amount_back_method, loan_amount);
+      } else if (Input.isQuitSet()) {
+        return;
+      } else {
+        if (loan_amount > 100000) {
+          // Colatoral required
+          getColatoral(conn, customer, location, teller, amount_back_method, loan_amount, accounts, account, null,
+              BackMethod.WHICH_ACCOUNT);
+        } else {
+          // Colatoral customers choice
+          hasColatoral(conn, customer, location, teller, amount_back_method, loan_amount, accounts, account,
+              BackMethod.WHICH_ACCOUNT);
+        }
+      }
+    } else {
+      System.out.println(
+          "You must intend to use this account: " + accounts.get(0).toString() + ". Its the only one you have");
+      hasColatoral(conn, customer, location, teller, amount_back_method, loan_amount, accounts, accounts.get(0),
+          BackMethod.ACCOUNT_OR_CASH);
+    }
+  }
+
+  public static void hasColatoral(Connection conn, Customer customer, Location location, Teller teller,
+      BackMethod amount_back_method, double loan_amount, List<Account> accounts, Account account,
+      BackMethod has_colatoral_back_method) {
     Boolean hasColatoral = Input.promptBoolean(
         "Would you like to have colatoral to lower your interest rate? You are not required with that size of a loan");
     if (Input.isBackSet()) {
-      loanAmount(conn, customer);
+      goBack(has_colatoral_back_method, conn, customer, location, teller, amount_back_method, loan_amount, accounts,
+          account, has_colatoral_back_method, null);
     } else if (Input.isQuitSet()) {
       return;
     } else if (hasColatoral) {
       // If the customer decided to have colatoral.
-      getColatoral(conn, customer, loan_amount, BackMethod.HAS_COLATORAL);
+      getColatoral(conn, customer, location, teller, amount_back_method, loan_amount, accounts, account,
+          has_colatoral_back_method, BackMethod.HAS_COLATORAL);
     } else {
       // If the customer doesn't want colatoral.
-      agreeToTerms(conn, customer, loan_amount, null, BackMethod.HAS_COLATORAL);
+      agreeToTerms(conn, customer, location, teller, amount_back_method, loan_amount, accounts, account, null,
+          has_colatoral_back_method, BackMethod.HAS_COLATORAL);
     }
   }
 
-  // TODO will fail if colatoral is longer than 15 characters FIX.
-  public static void getColatoral(Connection conn, Customer customer, double loan_amount, BackMethod back_method) {
-    String colatoral = Input.promptCustomString("What is your colatoral (must be less than 16 characters): ", (input) -> input.length() <= 15);
+  public static void getColatoral(Connection conn, Customer customer, Location location, Teller teller,
+      BackMethod amount_back_method, double loan_amount, List<Account> accounts, Account account,
+      BackMethod has_colatoral_back_method, BackMethod back_method) {
+    String colatoral = Input.promptCustomString("What is your colatoral (must be less than 16 characters): ",
+        (input) -> input.length() <= 15);
     if (Input.isBackSet()) {
-      goBack(conn, customer, loan_amount, back_method);
+      goBack(back_method, conn, customer, location, teller, amount_back_method, loan_amount, accounts, account,
+          has_colatoral_back_method, back_method);
     } else if (Input.isQuitSet()) {
       return;
     } else {
@@ -107,12 +230,14 @@ public class LoanTakeoutInterface {
       } else if (colatoral.toLowerCase().equals("beet farm")) {
         System.out.println("Oh goody its a beet farm!");
       }
-      agreeToTerms(conn, customer, loan_amount, colatoral, BackMethod.GET_COLATORAL);
+      agreeToTerms(conn, customer, location, teller, amount_back_method, loan_amount, accounts, account, colatoral,
+          has_colatoral_back_method, BackMethod.GET_COLATORAL);
     }
   }
 
-  public static void agreeToTerms(Connection conn, Customer customer, double loan_amount, String colatoral,
-      BackMethod back_method) {
+  public static void agreeToTerms(Connection conn, Customer customer, Location location, Teller teller,
+      BackMethod amount_back_method, double loan_amount, List<Account> accounts, Account account, String colatoral,
+      BackMethod has_colatoral_back_method, BackMethod back_method) {
     // loanholder id, loan interest rate (determined by math?),
     // * amount loaned (amount due = amount loaned), monthly payment (likely percent
     // * of amount loaned), and colatoral (may not exist)
@@ -121,7 +246,8 @@ public class LoanTakeoutInterface {
 
     if (net_account_balance == null || net_loan_amount_due == null) {
       System.out.println("Unable to calculate!");
-      goBack(conn, customer, loan_amount, back_method);
+      goBack(back_method, conn, customer, location, teller, amount_back_method, loan_amount, accounts, account,
+          has_colatoral_back_method, back_method);
     } else {
       double net_balance = net_account_balance - net_loan_amount_due;
 
@@ -173,23 +299,26 @@ public class LoanTakeoutInterface {
 
       Boolean agreed = Input.promptBoolean("Do you agree to the terms of this loan?");
       if (Input.isBackSet()) {
-        goBack(conn, customer, loan_amount, back_method);
+        goBack(back_method, conn, customer, location, teller, amount_back_method, loan_amount, accounts, account,
+            has_colatoral_back_method, back_method);
       } else if (Input.isQuitSet()) {
         return;
       } else if (agreed) {
         // Have the user provide their digital signature
-        promptSignature(conn, customer, loan_amount, colatoral, back_method, interest_rate, monthly_payment);
+        promptSignature(conn, customer, location, teller, amount_back_method, loan_amount, accounts, account, colatoral,
+            has_colatoral_back_method, back_method, interest_rate, monthly_payment);
       } else {
         // If they say no then bring them back to the beginning of the request loan
         // interface. Don't want to let them get away that easily.
         System.out.println("Thats unfortunate. Let's try again!");
-        loanAmount(conn, customer);
+        loanAmount(conn, customer, location, teller, amount_back_method);
       }
     }
   }
 
-  public static void promptSignature(Connection conn, Customer customer, double loan_amount, String colatoral,
-      BackMethod back_method, double interest_rate, double monthly_payment) {
+  public static void promptSignature(Connection conn, Customer customer, Location location, Teller teller,
+      BackMethod amount_back_method, double loan_amount, List<Account> accounts, Account account, String colatoral,
+      BackMethod has_colatoral_back_method, BackMethod back_method, double interest_rate, double monthly_payment) {
     // This is legally binding (Section 3.2B of Contract Law states that if a person
     // agrees to a loan with an imaginary bank with no actual contract then the
     // terms are legally binding and must be followed through on by both sides)
@@ -199,39 +328,72 @@ public class LoanTakeoutInterface {
     Input.promptCustomString("Please enter your digital signature (" + customer.getFullName() + ")",
         (input) -> input.toLowerCase().equals(customer.getFullName().toLowerCase()));
     if (Input.isBackSet()) {
-      agreeToTerms(conn, customer, loan_amount, colatoral, back_method);
+      agreeToTerms(conn, customer, location, teller, amount_back_method, loan_amount, accounts, account, colatoral,
+          has_colatoral_back_method, back_method);
     } else if (Input.isQuitSet()) {
       return;
     } else {
-      // TODO
-      // if (-1 == ConnectionManager.insertLoan(customer.getPId(), interest_rate, loan_amount, loan_amount,
-      //     monthly_payment, colatoral, conn)) {
-      //   System.out.println("There was an error! Please try another day");
-      //   return;
-      // } else {
-      //   if (loan_amount > 100000) {
-      //     // Some witty humor for the user.
-      //     System.out.println(
-      //         "Loan taken out. We are mailing you a check with the money (For that amount of money its gonna be one of the big checks too)");
-      //   } else {
-      //     System.out.println("Loan taken out. We are mailing you a check with the money");
-      //   }
-      //   System.out.println("Thank you for using this interface");
-      //   return;
-      // }
+      boolean success;
+      if (account == null) {
+        success = ConnectionManager.insertLoanCashTakeout(conn, customer, colatoral, interest_rate, loan_amount,
+            monthly_payment, teller, location);
+        if (success) {
+          // Giving them one of the big checks is one of our secrets. They're just
+          // cardboard! You can't deposit those
+          System.out.println(
+              "Loan succesfully taken out. The teller will hand you a check with the cash now (one of those big checks!)");
+        }
+      } else {
+        success = ConnectionManager.insertLoanAccountTakeout(conn, customer, account, colatoral, interest_rate,
+            loan_amount, monthly_payment, teller);
+        if (success) {
+          System.out.println("Loan succesfully taken out. Your account will have the money in it now");
+        }
+      }
+      if (!success) {
+        System.out.println("Unable to takeout loan");
+      }
+      resetInterface(conn, customer, location, teller, amount_back_method);
     }
   }
 
-  public static void goBack(Connection conn, Customer customer, double loan_amount, BackMethod back_method) {
-    switch (back_method) {
+  public static void resetInterface(Connection conn, Customer customer, Location location, Teller teller,
+      BackMethod amount_back_method) {
+    Boolean differentLoan = Input.promptBoolean("Would you like to take out a different loan?");
+    if (Input.isBackSet() || Input.isQuitSet() || !differentLoan) {
+      return; // TODO
+    } else {
+      loanAmount(conn, customer, location, teller, amount_back_method);
+      ;
+    }
+  }
+
+  public static void goBack(BackMethod used_back_method, Connection conn, Customer customer, Location location,
+      Teller teller, BackMethod amount_back_method, Double loan_amount, List<Account> accounts, Account account,
+      BackMethod has_colatoral_back_method, BackMethod back_method) {
+    switch (used_back_method) {
+    case ACCOUNT_OR_CASH:
+      accountOrCash(conn, customer, location, teller, amount_back_method, loan_amount);
+      break;
+    case WHICH_ACCOUNT:
+      whichAccount(conn, customer, location, teller, amount_back_method, loan_amount, accounts);
+      break;
+    case LOCATION:
+      location(conn, customer);
+      break;
+    case TELLER:
+      teller(conn, customer, location);
+      break;
     case LOAN_AMOUNT:
-      loanAmount(conn, customer);
+      loanAmount(conn, customer, location, teller, amount_back_method);
       break;
     case HAS_COLATORAL:
-      hasColatoral(conn, customer, loan_amount);
+      hasColatoral(conn, customer, location, teller, amount_back_method, loan_amount, accounts, account,
+          has_colatoral_back_method);
       break;
     case GET_COLATORAL:
-      getColatoral(conn, customer, loan_amount, back_method);
+      getColatoral(conn, customer, location, teller, amount_back_method, loan_amount, accounts, account,
+          has_colatoral_back_method, back_method);
       break;
     }
   }

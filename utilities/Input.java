@@ -50,6 +50,10 @@ public class Input {
       return null;
     }
     List<T> results = search.find(substring);
+    if (results == null) {
+      backSet = true;
+      return null;
+    }
     int count = results.size();
 
     if (count == 0) {

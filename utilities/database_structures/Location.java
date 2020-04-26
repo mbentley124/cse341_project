@@ -52,7 +52,8 @@ public class Location {
       tellers = ResultSetConverter.toTellers(dept_search.executeQuery());
     } catch (SQLException e) {
       // TODO exit quietly.
-      e.printStackTrace();
+      // e.printStackTrace();
+      return null;
     }
     return tellers;
   }

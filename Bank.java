@@ -4,8 +4,6 @@ import java.sql.SQLException;
 import utilities.ConnectionManager;
 import utilities.Input;
 
-// TODO need to make sure that values that can be null don't break the db. 
-
 public class Bank {
 
   public static void main(String[] args) {
@@ -29,8 +27,7 @@ public class Bank {
         }
       }
     } catch (SQLException e) {
-      // TODO exit gracefully.
-      e.printStackTrace();
+      System.out.println("There was an error connecting to the bank");
     }
   }
 }
