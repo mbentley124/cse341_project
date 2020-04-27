@@ -117,7 +117,7 @@ CREATE TABLE debit_card
     FOREIGN KEY (card_id) REFERENCES card
         ON DELETE CASCADE,
     FOREIGN KEY (acc_id) REFERENCES checking
-        ON DELETE CASCADE);
+        ON DELETE SET NULL);
 
 -- LOAN TABLES
 CREATE TABLE loan 
@@ -162,7 +162,7 @@ CREATE TABLE credit_card_payment
     card_id         NUMBER,
     PRIMARY KEY (t_id),
     FOREIGN KEY (card_id) REFERENCES credit_card
-        ON DELETE CASCADE,
+        ON DELETE SET NULL,
     FOREIGN KEY (t_id) REFERENCES transaction
         ON DELETE CASCADE);
         
@@ -171,7 +171,7 @@ CREATE TABLE loan_payment
     l_id            NUMBER,
     PRIMARY KEY (t_id),
     FOREIGN KEY (l_id) REFERENCES loan
-        ON DELETE CASCADE,
+        ON DELETE SET NULL,
     FOREIGN KEY (t_id) REFERENCES transaction
         ON DELETE CASCADE);
 
@@ -182,7 +182,7 @@ CREATE TABLE cash_transaction
     FOREIGN KEY (t_id) REFERENCES transaction
         ON DELETE CASCADE,
     FOREIGN KEY (loc_id) REFERENCES location
-        ON DELETE CASCADE);
+        ON DELETE SET NULL);
 
 CREATE TABLE account_deposit
     (t_id           NUMBER,
@@ -192,9 +192,9 @@ CREATE TABLE account_deposit
     FOREIGN KEY (t_id) REFERENCES transaction
         ON DELETE CASCADE,
     FOREIGN KEY (acc_id) REFERENCES account
-        ON DELETE CASCADE,
+        ON DELETE SET NULL,
     FOREIGN KEY (p_id) REFERENCES teller
-        ON DELETE CASCADE);
+        ON DELETE SET NULL);
         
 CREATE TABLE account_withdraw
     (t_id           NUMBER,
@@ -204,9 +204,9 @@ CREATE TABLE account_withdraw
     FOREIGN KEY (t_id) REFERENCES transaction
         ON DELETE CASCADE,
     FOREIGN KEY (acc_id) REFERENCES account
-        ON DELETE CASCADE,
+        ON DELETE SET NULL,
     FOREIGN KEY (p_id) REFERENCES teller
-        ON DELETE CASCADE);
+        ON DELETE SET NULL);
 
 CREATE TABLE account_holder
     (acc_id         NUMBER,
