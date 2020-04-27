@@ -9,8 +9,28 @@ import java.util.List;
 import utilities.ResultSetConverter;
 
 public class CheckingAccount extends Account {
-  public CheckingAccount(long acc_id, double balance, double acc_interest_rate, Timestamp acc_opened_date) {
+  private int minimumBalance;
+  private int penalty;
+
+  public CheckingAccount(long acc_id, double balance, double acc_interest_rate, int minimum_balance, int penalty,
+      Timestamp acc_opened_date) {
     super(acc_id, balance, acc_interest_rate, acc_opened_date);
+    this.minimumBalance = minimum_balance;
+    this.penalty = penalty;
+  }
+
+  /**
+   * @return the minimumBalance
+   */
+  public int getMinimumBalance() {
+    return minimumBalance;
+  }
+
+  /**
+   * @return the penalty
+   */
+  public int getPenalty() {
+    return penalty;
   }
 
   @Override
@@ -27,6 +47,8 @@ public class CheckingAccount extends Account {
       if (accounts.size() > 0) {
         this.balance = accounts.get(0).getBalance();
         this.accInterestRate = accounts.get(0).getAccInterestRate();
+        this.minimumBalance = accounts.get(0).getMinimumBalance();
+        this.penalty = accounts.get(0).getPenalty();
         return true;
       }
     } catch (SQLException e) {

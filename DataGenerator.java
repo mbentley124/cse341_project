@@ -108,8 +108,8 @@ public class DataGenerator {
 				PreparedStatement insert_account = conn.prepareStatement(
 						"INSERT INTO account (balance, acc_interest_rate, acc_opened_date) VALUES (?, ?, ?)",
 						new String[] { "acc_id" });
-				PreparedStatement insert_checking = conn.prepareStatement("INSERT INTO checking VALUES (?)");
-				PreparedStatement insert_savings = conn.prepareStatement("INSERT INTO savings VALUES (?, ?, ?)");
+				PreparedStatement insert_checking = conn.prepareStatement("INSERT INTO checking VALUES (?, ?, ?)");
+				PreparedStatement insert_savings = conn.prepareStatement("INSERT INTO savings VALUES (?)");
 				PreparedStatement insert_account_holder = conn.prepareStatement("INSERT INTO account_holder VALUES (?, ?)")) {
 			insert_account.setDouble(1, balance);
 			insert_account.setDouble(2, interest_rate);
@@ -119,13 +119,13 @@ public class DataGenerator {
 			results.next();
 			long account_id = results.getLong(1);
 			if (penalty != null && minimum_balance != null) {
-				insert_savings.setLong(1, account_id);
-				insert_savings.setInt(2, minimum_balance);
-				insert_savings.setInt(3, penalty);
-				insert_savings.execute();
-			} else {
 				insert_checking.setLong(1, account_id);
+				insert_checking.setInt(2, minimum_balance);
+				insert_checking.setInt(3, penalty);
 				insert_checking.execute();
+			} else {
+				insert_savings.setLong(1, account_id);
+				insert_savings.execute();
 			}
 			insert_account_holder.setLong(1, account_id);
 			for (long account_holder : account_holders) {
@@ -295,7 +295,7 @@ public class DataGenerator {
 				long acc_id = insertAccount(balance, interest_rate, generateRandomTimestampBetweenYears(2011, 2017),
 						minimum_balance, penalty, accountHolders, conn);
 				account_ids[i] = acc_id;
-				if (minimum_balance == null) {
+				if (minimum_balance != null) {
 					checking_account_ids.add(acc_id);
 				}
 				for (long account_holder : accountHolders) {

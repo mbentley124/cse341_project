@@ -106,7 +106,7 @@ public class DepositWithdrawInterface {
       promptLocation(conn, customer, account);
     } else if (compatible_tellers.size() == 1) {
       System.out.println("This location only has an ATM which only supports deposits");
-      accountDeposit(conn, customer, account, location, compatible_tellers.get(0), BackMethod.PROMPT_LOCATION);
+      accountWithdraw(conn, customer, account, location, compatible_tellers.get(0), BackMethod.PROMPT_LOCATION);
     } else {
       Teller teller = Input.prompt("Which teller are you working with?", compatible_tellers.toArray(new Teller[0]));
       if (Input.isBackSet()) {
@@ -115,7 +115,8 @@ public class DepositWithdrawInterface {
         return;
       } else {
         if (teller.isAtm()) {
-          accountDeposit(conn, customer, account, location, teller, BackMethod.PROMPT_TELLER);
+          System.out.println("ATMS only support withdrawals");
+          accountWithdraw(conn, customer, account, location, teller, BackMethod.PROMPT_TELLER);
         } else {
           promptWithdrawOrDeposit(conn, customer, account, location, teller);
         }
@@ -134,9 +135,9 @@ public class DepositWithdrawInterface {
     } else if (Input.isQuitSet()) {
       return;
     } else if (action_choice.equals("Withdraw")) {
-      accountWithdraw(conn, customer, account, location, teller);
+      accountWithdraw(conn, customer, account, location, teller, BackMethod.PROMPT_WITHDRAW_DEPOSIT);
     } else if (action_choice.equals("Deposit")) {
-      accountDeposit(conn, customer, account, location, teller, BackMethod.PROMPT_WITHDRAW_DEPOSIT);
+      accountDeposit(conn, customer, account, location, teller);
     } else if (action_choice.equals("Transfer")) {
       accountTransferSelection(conn, customer, account, location, teller);
     }
@@ -195,17 +196,17 @@ public class DepositWithdrawInterface {
   }
 
   public static void accountWithdraw(Connection conn, Customer customer, Account account, Location location,
-      Teller teller) {
+      Teller teller, BackMethod back_method) {
     Double withdraw_amount = Input.promptDouble("How much would you like to withdraw?", true);
     if (Input.isBackSet()) {
-      promptWithdrawOrDeposit(conn, customer, account, location, teller);
+      goBack(conn, customer, account, location, teller, back_method);
     } else if (Input.isQuitSet()) {
       return;
     } else {
       int penalty = ConnectionManager.cashWithdraw(withdraw_amount, location, teller, account, conn);
       if (penalty == -1) {
         System.out.println("Unable to withdraw that much!");
-        accountWithdraw(conn, customer, account, location, teller);
+        accountWithdraw(conn, customer, account, location, teller, back_method);
       } else {
         if (penalty != 0) {
           System.out.println("There is a $" + penalty + " penalty for this withdrawal");
@@ -213,16 +214,16 @@ public class DepositWithdrawInterface {
         account.refresh(conn);
         System.out.println(
             "You have withdrew $" + withdraw_amount + ". You now have $" + account.getBalance() + " in your account.");
-        promptWithdrawOrDeposit(conn, customer, account, location, teller);
+        goBack(conn, customer, account, location, teller, back_method);
       }
     }
   }
 
   public static void accountDeposit(Connection conn, Customer customer, Account account, Location location,
-      Teller teller, BackMethod back_method) {
+      Teller teller) {
     Double deposit_amount = Input.promptDouble("How much would you like to deposit?", true);
     if (Input.isBackSet()) {
-      goBack(conn, customer, account, location, teller, back_method);
+      promptWithdrawOrDeposit(conn, customer, account, location, teller);
     } else if (Input.isQuitSet()) {
       return;
     } else {
@@ -234,7 +235,7 @@ public class DepositWithdrawInterface {
         System.out.println(
             "You have deposited $" + deposit_amount + ". You now have $" + account.getBalance() + " in your account.");
       }
-      goBack(conn, customer, account, location, teller, back_method);
+      promptWithdrawOrDeposit(conn, customer, account, location, teller);
     }
   }
 

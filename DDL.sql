@@ -68,14 +68,14 @@ CREATE TABLE account
 
 CREATE TABLE checking
     (acc_id         NUMBER,
+    minimum_balance     NUMBER CHECK (minimum_balance >= 0),
+    penalty             NUMBER CHECK (penalty >= 0),
     PRIMARY KEY (acc_id),
     FOREIGN KEY (acc_id) REFERENCES account
         ON DELETE CASCADE);
 
 CREATE TABLE savings
     (acc_id             NUMBER,
-    minimum_balance     NUMBER CHECK (minimum_balance >= 0),
-    penalty             NUMBER CHECK (penalty >= 0),
     PRIMARY KEY (acc_id),
     FOREIGN KEY (acc_id) REFERENCES account
         ON DELETE CASCADE);
@@ -138,7 +138,7 @@ CREATE TABLE loan
 
 CREATE TABLE secured_loan
     (l_id           NUMBER,
-    collatoral      VARCHAR (15),
+    collatoral      VARCHAR (60),
     PRIMARY KEY (l_id),
     FOREIGN KEY (l_id) REFERENCES loan
         ON DELETE CASCADE);

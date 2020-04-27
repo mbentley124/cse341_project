@@ -6,7 +6,6 @@
 ./utilities/database_structures/CheckingAccount.java
 ./utilities/database_structures/CreditCard.java
 ./utilities/database_structures/Card.java
-./utilities/database_structures/Loan.java
 ./utilities/database_structures/Account.java
 ./utilities/database_structures/SavingsAccount.java
 ./utilities/database_structures/Person.java

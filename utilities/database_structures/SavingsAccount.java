@@ -10,28 +10,8 @@ import utilities.ResultSetConverter;
 
 public class SavingsAccount extends Account {
 
-  private int minimumBalance;
-  private int penalty;
-
-  public SavingsAccount(long acc_id, double balance, double acc_interest_rate, int minimum_balance, int penalty,
-      Timestamp acc_opened_date) {
+  public SavingsAccount(long acc_id, double balance, double acc_interest_rate, Timestamp acc_opened_date) {
     super(acc_id, balance, acc_interest_rate, acc_opened_date);
-    this.minimumBalance = minimum_balance;
-    this.penalty = penalty;
-  }
-
-  /**
-   * @return the minimumBalance
-   */
-  public int getMinimumBalance() {
-    return minimumBalance;
-  }
-
-  /**
-   * @return the penalty
-   */
-  public int getPenalty() {
-    return penalty;
   }
 
   @Override
@@ -48,8 +28,6 @@ public class SavingsAccount extends Account {
       if (accounts.size() > 0) {
         this.balance = accounts.get(0).getBalance();
         this.accInterestRate = accounts.get(0).getAccInterestRate();
-        this.minimumBalance = accounts.get(0).getMinimumBalance();
-        this.penalty = accounts.get(0).getPenalty();
         return true;
       }
     } catch (SQLException e) {
