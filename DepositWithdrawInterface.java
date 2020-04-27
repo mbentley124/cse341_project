@@ -2,6 +2,7 @@ import java.sql.Connection;
 import java.util.List;
 
 import utilities.database_structures.Account;
+import utilities.database_structures.CheckingAccount;
 import utilities.database_structures.Customer;
 import utilities.database_structures.Location;
 import utilities.database_structures.Teller;
@@ -170,8 +171,16 @@ public class DepositWithdrawInterface {
 
   public static void accountMoneyTransfer(Connection conn, Customer customer, Account from_account, Account to_account,
       Location location, Teller teller) {
-    Double transfer_amount = Input.promptDouble("How much would you like to transfer? You currently have $"
-        + from_account.getBalance() + " in the account you are transfering from", true);
+    if (from_account instanceof CheckingAccount) {
+      System.out.println("You currently have $" + from_account.getBalance()
+          + " in the account you are transfering from (Minimum Balance: $"
+          + ((CheckingAccount) from_account).getMinimumBalance() + ", Penalty: $"
+          + ((CheckingAccount) from_account).getPenalty() + ")");
+    } else {
+      System.out
+          .println("You currently have $" + from_account.getBalance() + " in the account you are transfering from");
+    }
+    Double transfer_amount = Input.promptDouble("How much would you like to transfer?", true);
     if (Input.isBackSet()) {
       accountTransferSelection(conn, customer, to_account, location, teller);
     } else if (Input.isQuitSet()) {
@@ -197,6 +206,13 @@ public class DepositWithdrawInterface {
 
   public static void accountWithdraw(Connection conn, Customer customer, Account account, Location location,
       Teller teller, BackMethod back_method) {
+    if (account instanceof CheckingAccount) {
+      System.out.println("You currently have $" + account.getBalance() + " in your account (Minimum Balance: $"
+          + ((CheckingAccount) account).getMinimumBalance() + ", Penalty: $" + ((CheckingAccount) account).getPenalty()
+          + ")");
+    } else {
+      System.out.println("You currently have $" + account.getBalance() + " in your account");
+    }
     Double withdraw_amount = Input.promptDouble("How much would you like to withdraw?", true);
     if (Input.isBackSet()) {
       goBack(conn, customer, account, location, teller, back_method);
