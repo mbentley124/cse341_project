@@ -102,14 +102,13 @@ public class Customer extends Person {
     List<Account> accounts = new ArrayList<>();
 
     try (PreparedStatement dept_search = conn.prepareStatement(
-        "SELECT * FROM account LEFT OUTER JOIN savings USING (acc_id) JOIN account_holder USING (acc_id) where p_id = ?")) {
+        "SELECT * FROM account LEFT OUTER JOIN checking USING (acc_id) JOIN account_holder USING (acc_id) where p_id = ?")) {
 
       dept_search.setLong(1, this.getPId());
 
       accounts = ResultSetConverter.toAccounts(dept_search.executeQuery());
 
     } catch (SQLException e) {
-      // TODO exit quietly.
       // e.printStackTrace();
       return null;
     }

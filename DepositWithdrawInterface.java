@@ -57,7 +57,7 @@ public class DepositWithdrawInterface {
   }
 
   public static void promptAccount(Connection conn, Customer customer) {
-    System.out.print("Welcome " + customer.getFullName() + "! ");
+    System.out.println("Welcome " + customer.getFullName() + "! ");
     List<Account> accounts = customer.selectAccounts(conn);
     if (accounts == null) {
       System.out.println("Error retrieving your accounts");
