@@ -5,6 +5,7 @@ import utilities.ConnectionManager;
 import utilities.Input;
 import utilities.database_structures.Account;
 import utilities.database_structures.Card;
+import utilities.database_structures.CheckingAccount;
 import utilities.database_structures.CreditCard;
 import utilities.database_structures.Customer;
 import utilities.database_structures.DebitCard;
@@ -74,9 +75,10 @@ public class CardPurchaseInterface {
           + " with a credit limit of $" + c_card.getCreditLimit());
     } else if (card instanceof DebitCard) {
       DebitCard d_card = (DebitCard) card;
-      Account account = d_card.selectAccount(conn);
+      CheckingAccount account = d_card.selectAccount(conn);
       if (account != null) {
-        System.out.println("You currently have $" + account.getBalance() + " in your account");
+        System.out.println("You currently have $" + account.getBalance() + " in your account (Minimum Balance: $"
+            + account.getMinimumBalance() + ", Penalty: $" + account.getPenalty() + ")");
       }
     }
     Double amount = Input.promptDouble("What is the value of the items you're purchasing?", true);
@@ -100,9 +102,12 @@ public class CardPurchaseInterface {
         }
       } else if (card instanceof DebitCard) {
         DebitCard d_card = (DebitCard) card;
-        boolean success = ConnectionManager.purchaseDebitCard(amount, d_card, vendor, conn);
-        if (success) {
-          Account account = d_card.selectAccount(conn);
+        int penalty = ConnectionManager.purchaseDebitCard(amount, d_card, vendor, conn);
+        if (penalty != -1) {
+          if (penalty > 0) {
+            System.out.println(penalty + "$ Penalty imposed for going below minimum balance");
+          }
+          CheckingAccount account = d_card.selectAccount(conn);
           if (account == null) {
             System.out.println("Transaction completed");
           } else {

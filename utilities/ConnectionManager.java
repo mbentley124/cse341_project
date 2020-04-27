@@ -153,26 +153,27 @@ public class ConnectionManager {
    * @param card   The debit card the customer is using to make the purchase
    * @param vendor The vendor the purchase is being made at
    * @param conn   The db connection
-   * @return True if insertion was succesfully commited.
+   * @return The penalty for the purchase. -1 on failure.
    */
-  public static boolean purchaseDebitCard(double amount, DebitCard card, Vendor vendor, Connection conn) {
+  public static int purchaseDebitCard(double amount, DebitCard card, Vendor vendor, Connection conn) {
     // Can't be a penalty since accounts must be checking
-    boolean success = -1 != accountIdWithdrawBalance(amount, card.getAccId(), conn);
+    int penalty = accountIdWithdrawBalance(amount, card.getAccId(), conn);
+    boolean success = -1 != penalty;
     long t_id = insertTransaction(amount, now(), conn);
     success = success && (t_id != -1);
     success = success && insertCardPurchase(t_id, card.getCardId(), vendor.getVId(), conn);
     try {
       if (success) {
         conn.commit();
+        return penalty;
       } else {
         conn.rollback();
       }
     } catch (SQLException e) {
       // TODO Auto-generated catch block
       // e.printStackTrace();
-      return false;
     }
-    return success;
+    return -1;
   }
 
   /**
