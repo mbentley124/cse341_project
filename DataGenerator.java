@@ -16,7 +16,7 @@ import utilities.ConnectionManager;
 
 public class DataGenerator {
 
-	private static Random random = new Random(20);
+	private static Random random = new Random(25);
 
 	public static long insertPerson(String name, Connection conn) {
 		try (PreparedStatement insert_person = conn.prepareStatement("INSERT INTO person (full_name) VALUES (?)",
