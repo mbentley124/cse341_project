@@ -81,15 +81,14 @@ A users loan interest rate is calculated based on the amount of money they curre
 The monthly payment for a loan is just a percentage of the total loan amount. (Although there is a discount if your colatoral is a beet farm! We love beets!)
 
 
-### Card Purchase Interface (Interface 7)
 
-
-
-
-## Useful Files
+## Interesting Files
 
 ### DDL.sql
 Resets all of the tables, dropping the old versions and inserting the new ones. 
+
+### Procedures.sql
+Contains all the procedures/functions that are used in the database. Mostly relating to adjusting the balance for accounts/cards. 
 
 ### DataGenerator.java
 Fills the table with semi-random data. All the names are predetermined however any number value is randomly determined. The randomness is seeded so it should be consistent as to the random values (however if something using random is changed then everything after it will become different then what it was before)
@@ -105,3 +104,6 @@ Does the database querying that is not specific to a particular row within the d
 
 ### Input.java
 Used for easily managing user input. 
+
+### compile.sh
+Recompiles all the java code. 
