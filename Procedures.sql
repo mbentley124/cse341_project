@@ -24,17 +24,17 @@ end;
 
 
 CREATE OR REPLACE FUNCTION accountWithdraw (id IN account.acc_id%TYPE, amount IN account.balance%TYPE) 
-RETURN savings.penalty%TYPE
+RETURN checking.penalty%TYPE
 AS
     bal account.balance%TYPE;
-    min_bal savings.minimum_balance%TYPE;
-    penal savings.penalty%TYPE;
+    min_bal checking.minimum_balance%TYPE;
+    penal checking.penalty%TYPE;
 BEGIN
     accountDeposit(id, -amount);
 
     SELECT balance INTO bal FROM account WHERE acc_id = id;
 
-    SELECT minimum_balance, penalty INTO min_bal, penal FROM account LEFT OUTER JOIN savings USING (acc_id) WHERE acc_id = id;
+    SELECT minimum_balance, penalty INTO min_bal, penal FROM account LEFT OUTER JOIN checking USING (acc_id) WHERE acc_id = id;
 
     IF min_bal IS NULL THEN
         RETURN 0;
