@@ -86,7 +86,7 @@ public class DepositWithdrawInterface {
       promptAccount(conn, customer);
       return;
     }
-    Location location = Input.prompt("What location are you withdrawing from?", locations.toArray(new Location[0]));
+    Location location = Input.prompt("What location are you transacting from?", locations.toArray(new Location[0]));
     if (Input.isBackSet()) {
       promptAccount(conn, customer);
     } else if (Input.isQuitSet()) {
@@ -106,7 +106,7 @@ public class DepositWithdrawInterface {
       System.out.println("Error retrieving location's tellers");
       promptLocation(conn, customer, account);
     } else if (compatible_tellers.size() == 1) {
-      System.out.println("This location only has an ATM which only supports deposits");
+      System.out.println("This location only has an ATM which only supports withdrawals");
       accountWithdraw(conn, customer, account, location, compatible_tellers.get(0), BackMethod.PROMPT_LOCATION);
     } else {
       Teller teller = Input.prompt("Which teller are you working with?", compatible_tellers.toArray(new Teller[0]));

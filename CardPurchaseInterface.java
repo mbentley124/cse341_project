@@ -93,7 +93,7 @@ public class CardPurchaseInterface {
         boolean success = ConnectionManager.purchaseCreditCard(amount, customer, c_card, vendor, conn);
         if (success) {
           c_card.refresh(conn);
-          System.out.println("Transaction completed. $" + c_card.getRollingBalance() + " rolling balance");
+          System.out.println("Transaction completed. You know have a $" + c_card.getRollingBalance() + " rolling balance");
 
           promptTransactionCompletion(conn, customer);
         } else {
@@ -105,13 +105,13 @@ public class CardPurchaseInterface {
         int penalty = ConnectionManager.purchaseDebitCard(amount, d_card, vendor, conn);
         if (penalty != -1) {
           if (penalty > 0) {
-            System.out.println(penalty + "$ Penalty imposed for going below minimum balance");
+            System.out.println("$" + penalty + " Penalty imposed for going below minimum balance");
           }
           CheckingAccount account = d_card.selectAccount(conn);
           if (account == null) {
             System.out.println("Transaction completed");
           } else {
-            System.out.println("Transaction completed. $" + account.getBalance() + " current balance");
+            System.out.println("Transaction completed. New balance of $" + account.getBalance());
           }
 
           promptTransactionCompletion(conn, customer);

@@ -133,7 +133,7 @@ public class LoanTakeoutInterface {
       System.out.println("Error finding your accounts");
       loanAmount(conn, customer, location, teller, amount_back_method);
     } else if (accounts.size() == 0) {
-      System.out.println("You do not have an account with us, so you will receive this money as cold hard cash");
+      System.out.println("You do not have an account with us, so you will receive this money as a check");
       if (loan_amount > 100000) {
         // Colatoral required
         getColatoral(conn, customer, location, teller, amount_back_method, loan_amount, accounts, null, null,
@@ -144,13 +144,13 @@ public class LoanTakeoutInterface {
             BackMethod.LOAN_AMOUNT);
       }
     } else {
-      String choice = Input.prompt("Would you like to receive you money in cash or in one of your accounts with us",
-          new String[] { "Cash", "Account" });
+      String choice = Input.prompt("Would you like to receive you money in a check or in one of your accounts with us",
+          new String[] { "Check", "Account" });
       if (Input.isBackSet()) {
         loanAmount(conn, customer, location, teller, amount_back_method);
       } else if (Input.isQuitSet()) {
         return;
-      } else if (choice.equals("Cash")) {
+      } else if (choice.equals("Check")) {
         if (loan_amount > 100000) {
           // Colatoral required
           getColatoral(conn, customer, location, teller, amount_back_method, loan_amount, accounts, null, null,
@@ -217,8 +217,8 @@ public class LoanTakeoutInterface {
   public static void getColatoral(Connection conn, Customer customer, Location location, Teller teller,
       BackMethod amount_back_method, double loan_amount, List<Account> accounts, Account account,
       BackMethod has_colatoral_back_method, BackMethod back_method) {
-    String colatoral = Input.promptCustomString("What is your colatoral (must be less than 16 characters): ",
-        (input) -> input.length() <= 15);
+    String colatoral = Input.promptCustomString("What is your colatoral (must be less than 61 characters): ",
+        (input) -> input.length() <= 60);
     if (Input.isBackSet()) {
       goBack(back_method, conn, customer, location, teller, amount_back_method, loan_amount, accounts, account,
           has_colatoral_back_method, back_method);
@@ -341,13 +341,13 @@ public class LoanTakeoutInterface {
           // Giving them one of the big checks is one of our secrets. They're just
           // cardboard! You can't deposit those
           System.out.println(
-              "Loan succesfully taken out. The teller will hand you a check with the cash now (one of those big checks!)");
+              "Loan succesfully taken out. The teller will hand you a check for the amount now (one of those big checks!)");
         }
       } else {
         success = ConnectionManager.insertLoanAccountTakeout(conn, customer, account, colatoral, interest_rate,
             loan_amount, monthly_payment, teller);
         if (success) {
-          System.out.println("Loan succesfully taken out. Your account will have the money in it now");
+          System.out.println("Loan succesfully taken out. Your account will have $" + loan_amount + " in it now");
         }
       }
       if (!success) {
