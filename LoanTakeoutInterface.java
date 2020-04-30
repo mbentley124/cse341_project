@@ -334,7 +334,14 @@ public class LoanTakeoutInterface {
       return;
     } else {
       boolean success;
-      if (account == null) {
+      Double outstanding_loan_amount = customer.getNetLoanAmountDue(conn);
+      if (outstanding_loan_amount == null) {
+        System.out.println("There was an error confirming your loan. ");
+        success = false;
+      } else if (outstanding_loan_amount + loan_amount >= 1000000) {
+        System.out.println("Tryin to pull a fast one I see! This loan would bring you above $1,000,000 of loans");
+        success = false;
+      } else if (account == null) {
         success = ConnectionManager.insertLoanCashTakeout(conn, customer, colatoral, interest_rate, loan_amount,
             monthly_payment, teller, location);
         if (success) {
@@ -359,12 +366,11 @@ public class LoanTakeoutInterface {
 
   public static void resetInterface(Connection conn, Customer customer, Location location, Teller teller,
       BackMethod amount_back_method) {
-    Boolean differentLoan = Input.promptBoolean("Would you like to take out a different loan?");
+    Boolean differentLoan = Input.promptBoolean("Would you like to take out a different loan (back/quit to quit)?");
     if (Input.isBackSet() || Input.isQuitSet() || !differentLoan) {
-      return; // TODO
+      return;
     } else {
       loanAmount(conn, customer, location, teller, amount_back_method);
-      ;
     }
   }
 
