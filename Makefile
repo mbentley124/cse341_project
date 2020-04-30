@@ -6,6 +6,7 @@ JC = javac
 	$(JC) $(JFLAGS) $*.java
 
 SOURCES = \
+	data_generation/DataGenerator.java \
 	mlb222/Bank.java \
 	mlb222/CardPurchaseInterface.java \
 	mlb222/DepositWithdrawInterface.java \
