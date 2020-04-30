@@ -2,6 +2,8 @@ Michael Bentley
 
 # General Information
 
+Compile using Makefile in root directory. 
+
 Modified checking/savings account from the ER diagram. Moved minimum balance/penalty to checking account where it belongs. 
 
 At any time in an interface you can type back or quit to go back within the interface or quit the interface. Going back in an interface immediately after deciding to takeout another loan/purchase/account transaction will take you back to the input that came before your first time with that input prompt. 
