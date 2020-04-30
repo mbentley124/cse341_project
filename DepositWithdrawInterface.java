@@ -256,8 +256,8 @@ public class DepositWithdrawInterface {
   }
 
   public static void anotherTransaction(Connection conn, Customer customer, Account account, Location location, Teller teller) {
-    Boolean another_transaction = Input.promptBoolean("Would you like to make another transaction on this account?");
-    if (Input.isBackSet() | Input.isQuitSet() | !another_transaction) {
+    Boolean another_transaction = Input.promptBoolean("Would you like to make another transaction on this account (back/quit will quit)?");
+    if (Input.isBackSet() || Input.isQuitSet() || !another_transaction) {
       System.out.println("Thank you for transacting with Nickel Bank");
       return;
     } else {
