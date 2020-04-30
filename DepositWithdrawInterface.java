@@ -106,7 +106,7 @@ public class DepositWithdrawInterface {
       System.out.println("Error retrieving location's tellers");
       promptLocation(conn, customer, account);
     } else if (compatible_tellers.size() == 1) {
-      System.out.println("This location only has an ATM which only supports withdrawals");
+      System.out.println("Your location only has an ATM which only supports withdrawals");
       accountWithdraw(conn, customer, account, location, compatible_tellers.get(0), BackMethod.PROMPT_LOCATION);
     } else {
       Teller teller = Input.prompt("Which teller are you working with?", compatible_tellers.toArray(new Teller[0]));
@@ -199,7 +199,7 @@ public class DepositWithdrawInterface {
         from_account.refresh(conn);
         System.out.println("You have transfered $" + transfer_amount + ". You now have $" + to_account.getBalance()
             + " in " + to_account.toString() + " and $" + from_account.getBalance() + " in " + from_account.toString());
-        promptWithdrawOrDeposit(conn, customer, to_account, location, teller);
+        anotherTransaction(conn, customer, to_account, location, teller);
       }
     }
   }
@@ -251,7 +251,17 @@ public class DepositWithdrawInterface {
         System.out.println(
             "You have deposited $" + deposit_amount + ". You now have $" + account.getBalance() + " in your account.");
       }
-      promptWithdrawOrDeposit(conn, customer, account, location, teller);
+      anotherTransaction(conn, customer, account, location, teller);
+    }
+  }
+
+  public static void anotherTransaction(Connection conn, Customer customer, Account account, Location location, Teller teller) {
+    Boolean another_transaction = Input.promptBoolean("Would you like to make another transaction on this account?");
+    if (Input.isBackSet() | Input.isQuitSet() | !another_transaction) {
+      System.out.println("Thank you for transacting with Nickel Bank");
+      return;
+    } else {
+      pathFromLocationTellers(conn, customer, account, location);
     }
   }
 
