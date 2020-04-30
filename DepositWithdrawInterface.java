@@ -230,7 +230,7 @@ public class DepositWithdrawInterface {
         account.refresh(conn);
         System.out.println(
             "You have withdrew $" + withdraw_amount + ". You now have $" + account.getBalance() + " in your account.");
-        goBack(conn, customer, account, location, teller, back_method);
+        anotherTransaction(conn, customer, account, location, teller);
       }
     }
   }
