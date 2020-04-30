@@ -1,13 +1,15 @@
+package mlb222;
+
 import java.sql.Connection;
 import java.util.List;
 
-import utilities.database_structures.Account;
-import utilities.database_structures.CheckingAccount;
-import utilities.database_structures.Customer;
-import utilities.database_structures.Location;
-import utilities.database_structures.Teller;
-import utilities.ConnectionManager;
-import utilities.Input;
+import mlb222.utilities.database_structures.Account;
+import mlb222.utilities.database_structures.CheckingAccount;
+import mlb222.utilities.database_structures.Customer;
+import mlb222.utilities.database_structures.Location;
+import mlb222.utilities.database_structures.Teller;
+import mlb222.utilities.ConnectionManager;
+import mlb222.utilities.Input;
 
 /**
  * This was a real fancy diagram showing the path the user goes along when using

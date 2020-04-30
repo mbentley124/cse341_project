@@ -1,4 +1,4 @@
-package utilities.database_structures;
+package mlb222.utilities.database_structures;
 
 import java.sql.CallableStatement;
 import java.sql.Connection;
@@ -7,7 +7,7 @@ import java.sql.SQLException;
 import java.sql.Timestamp;
 import java.util.List;
 
-import utilities.ResultSetConverter;
+import mlb222.utilities.ResultSetConverter;
 
 public class CreditCard extends Card {
 

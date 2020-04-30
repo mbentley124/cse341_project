@@ -1,11 +1,11 @@
-package utilities.database_structures;
+package mlb222.utilities.database_structures;
 
 import java.sql.CallableStatement;
 import java.sql.Connection;
 import java.sql.SQLException;
 import java.sql.Timestamp;
 
-import utilities.ConnectionManager;
+import mlb222.utilities.ConnectionManager;
 
 public abstract class Account {
   private long accId;

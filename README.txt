@@ -73,26 +73,5 @@ Allow customers to login using their id too, so we are able to have multiple cus
 
 # Miscellaneous Files
 
-### DDL.sql
-Resets all of the tables, dropping the old versions and inserting the new ones. 
-
-### Procedures.sql
-Contains all the procedures/functions that are used in the database. Mostly relating to adjusting the balance for accounts/cards. 
-
-### DataGenerator.java
-Fills the table with semi-random data. All the names are predetermined however any number value is randomly determined. The randomness is seeded so it should be consistent as to the random values (however if something using random is changed then everything after it will become different then what it was before)
-
-### database_structures package
-Contains wrappers for most of the database tables. Most wrapper classes have useful methods within it for querying the database for values relevant to that specific entity within the database. 
-
-### ResultSetConverter.java
-Converts ResultSet to their relevant database structure wrapper class. 
-
-### ConnectionManager.java
-Does the database querying that is not specific to a particular row within the database (i.e. inserting a new row)
-
-### Input.java
-Used for easily managing user input. 
-
-### compile.sh
-Recompiles all the java code. 
+## data_generation folder
+Contains data generator java file. Also contains sql ddl, and the procedures pl/sql. 

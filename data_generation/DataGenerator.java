@@ -1,3 +1,5 @@
+package data_generation;
+
 import java.sql.Connection;
 import java.sql.PreparedStatement;
 import java.sql.ResultSet;
@@ -12,10 +14,15 @@ import java.util.Map;
 import java.util.Random;
 import java.util.Map.Entry;
 
-import utilities.ConnectionManager;
+import mlb222.utilities.ConnectionManager;
 
 public class DataGenerator {
 
+	// Fills the table with semi-random data. All the names are predetermined
+	// however any number value is randomly determined. The randomness is seeded so
+	// it should be consistent as to the random values (however if something using
+	// random is changed then everything after it will become different then what it
+	// was before)
 	private static Random random = new Random(25);
 
 	public static long insertPerson(String name, Connection conn) {

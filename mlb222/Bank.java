@@ -1,8 +1,10 @@
+package mlb222;
+
 import java.sql.Connection;
 import java.sql.SQLException;
 
-import utilities.ConnectionManager;
-import utilities.Input;
+import mlb222.utilities.ConnectionManager;
+import mlb222.utilities.Input;
 
 public class Bank {
 

@@ -1,4 +1,4 @@
-package utilities;
+package mlb222.utilities;
 
 import java.sql.ResultSet;
 import java.sql.SQLException;
@@ -6,16 +6,16 @@ import java.sql.Timestamp;
 import java.util.ArrayList;
 import java.util.List;
 
-import utilities.database_structures.Account;
-import utilities.database_structures.Card;
-import utilities.database_structures.CheckingAccount;
-import utilities.database_structures.CreditCard;
-import utilities.database_structures.Customer;
-import utilities.database_structures.DebitCard;
-import utilities.database_structures.Location;
-import utilities.database_structures.SavingsAccount;
-import utilities.database_structures.Teller;
-import utilities.database_structures.Vendor;
+import mlb222.utilities.database_structures.Account;
+import mlb222.utilities.database_structures.Card;
+import mlb222.utilities.database_structures.CheckingAccount;
+import mlb222.utilities.database_structures.CreditCard;
+import mlb222.utilities.database_structures.Customer;
+import mlb222.utilities.database_structures.DebitCard;
+import mlb222.utilities.database_structures.Location;
+import mlb222.utilities.database_structures.SavingsAccount;
+import mlb222.utilities.database_structures.Teller;
+import mlb222.utilities.database_structures.Vendor;
 
 /**
  * This class is in charge of converting ResultSet to lists of

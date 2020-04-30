@@ -1,4 +1,4 @@
-package utilities.database_structures;
+package mlb222.utilities.database_structures;
 
 import java.sql.Timestamp;
 

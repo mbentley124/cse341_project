@@ -1,11 +1,11 @@
-package utilities;
+package mlb222.utilities;
 
 import java.sql.Connection;
 import java.util.List;
 import java.util.Scanner;
 
-import utilities.database_structures.Customer;
-import utilities.database_structures.Vendor;
+import mlb222.utilities.database_structures.Customer;
+import mlb222.utilities.database_structures.Vendor;
 
 public class Input {
 

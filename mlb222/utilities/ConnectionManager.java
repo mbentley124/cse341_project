@@ -1,4 +1,4 @@
-package utilities;
+package mlb222.utilities;
 
 import java.sql.CallableStatement;
 import java.sql.Connection;
@@ -12,13 +12,13 @@ import java.util.ArrayList;
 import java.util.Date;
 import java.util.List;
 
-import utilities.database_structures.Account;
-import utilities.database_structures.CreditCard;
-import utilities.database_structures.Customer;
-import utilities.database_structures.DebitCard;
-import utilities.database_structures.Location;
-import utilities.database_structures.Teller;
-import utilities.database_structures.Vendor;
+import mlb222.utilities.database_structures.Account;
+import mlb222.utilities.database_structures.CreditCard;
+import mlb222.utilities.database_structures.Customer;
+import mlb222.utilities.database_structures.DebitCard;
+import mlb222.utilities.database_structures.Location;
+import mlb222.utilities.database_structures.Teller;
+import mlb222.utilities.database_structures.Vendor;
 
 public class ConnectionManager {
 

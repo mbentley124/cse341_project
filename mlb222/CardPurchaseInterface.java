@@ -1,14 +1,16 @@
+package mlb222;
+
 import java.sql.Connection;
 import java.util.List;
 
-import utilities.ConnectionManager;
-import utilities.Input;
-import utilities.database_structures.Card;
-import utilities.database_structures.CheckingAccount;
-import utilities.database_structures.CreditCard;
-import utilities.database_structures.Customer;
-import utilities.database_structures.DebitCard;
-import utilities.database_structures.Vendor;
+import mlb222.utilities.ConnectionManager;
+import mlb222.utilities.Input;
+import mlb222.utilities.database_structures.Card;
+import mlb222.utilities.database_structures.CheckingAccount;
+import mlb222.utilities.database_structures.CreditCard;
+import mlb222.utilities.database_structures.Customer;
+import mlb222.utilities.database_structures.DebitCard;
+import mlb222.utilities.database_structures.Vendor;
 
 /**
  * Fancy diagram below that I accidentaly ruined. I have a habit of doing
