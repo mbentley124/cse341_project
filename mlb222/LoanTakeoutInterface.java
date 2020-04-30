@@ -372,30 +372,22 @@ public class LoanTakeoutInterface {
       Location location, Teller teller, LoanTakeoutBackMethod amount_back_method, Double loan_amount,
       List<Account> accounts, Account account, LoanTakeoutBackMethod has_colatoral_back_method,
       LoanTakeoutBackMethod back_method) {
-    switch (used_back_method) {
-    case ACCOUNT_OR_CASH:
+    if (used_back_method == LoanTakeoutBackMethod.ACCOUNT_OR_CASH) {
       accountOrCash(conn, customer, location, teller, amount_back_method, loan_amount);
-      break;
-    case WHICH_ACCOUNT:
+    } else if (used_back_method == LoanTakeoutBackMethod.WHICH_ACCOUNT) {
       whichAccount(conn, customer, location, teller, amount_back_method, loan_amount, accounts);
-      break;
-    case LOCATION:
+    } else if (used_back_method == LoanTakeoutBackMethod.LOCATION) {
       location(conn, customer);
-      break;
-    case TELLER:
+    } else if (used_back_method == LoanTakeoutBackMethod.TELLER) {
       teller(conn, customer, location);
-      break;
-    case LOAN_AMOUNT:
+    } else if (used_back_method == LoanTakeoutBackMethod.LOAN_AMOUNT) {
       loanAmount(conn, customer, location, teller, amount_back_method);
-      break;
-    case HAS_COLATORAL:
+    } else if (used_back_method == LoanTakeoutBackMethod.HAS_COLATORAL) {
       hasColatoral(conn, customer, location, teller, amount_back_method, loan_amount, accounts, account,
           has_colatoral_back_method);
-      break;
-    case GET_COLATORAL:
+    } else if (used_back_method == LoanTakeoutBackMethod.GET_COLATORAL) {
       getColatoral(conn, customer, location, teller, amount_back_method, loan_amount, accounts, account,
           has_colatoral_back_method, back_method);
-      break;
     }
   }
 }
