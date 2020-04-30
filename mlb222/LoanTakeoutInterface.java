@@ -24,15 +24,6 @@ import mlb222.utilities.Input;
  */
 public class LoanTakeoutInterface {
 
-  /**
-   * An enum representing the method to go back to after the user enters 'back'.
-   * This is required for methods that are called from multiple other methods,
-   * otherwise its ambiguious where back goes to.
-   */
-  private enum BackMethod {
-    TELLER, LOCATION, LOAN_AMOUNT, ACCOUNT_OR_CASH, WHICH_ACCOUNT, HAS_COLATORAL, GET_COLATORAL
-  }
-
   public static void run(Connection conn) {
     System.out.println(
         "Welcome to the loan takeout interface! At any time you can type quit to quit the interface and back to go back.");
@@ -83,7 +74,7 @@ public class LoanTakeoutInterface {
     } else if (tellers.size() == 1) {
       System.out
           .println(tellers.get(0) + " is the only teller that works at that location. You must be working with them");
-      loanAmount(conn, customer, location, tellers.get(0), BackMethod.LOCATION);
+      loanAmount(conn, customer, location, tellers.get(0), LoanTakeoutBackMethod.LOCATION);
     } else {
       Teller teller = Input.prompt("Which teller are you working with?", tellers.toArray(new Teller[0]));
       if (Input.isBackSet()) {
@@ -91,13 +82,13 @@ public class LoanTakeoutInterface {
       } else if (Input.isQuitSet()) {
         return;
       } else {
-        loanAmount(conn, customer, location, teller, BackMethod.TELLER);
+        loanAmount(conn, customer, location, teller, LoanTakeoutBackMethod.TELLER);
       }
     }
   }
 
   public static void loanAmount(Connection conn, Customer customer, Location location, Teller teller,
-      BackMethod amount_back_method) {
+      LoanTakeoutBackMethod amount_back_method) {
     // We don't want a single customer to have too much money loaned out to them.
     Double outstanding_loan_amount = customer.getNetLoanAmountDue(conn);
     if (outstanding_loan_amount == null) {
@@ -129,7 +120,7 @@ public class LoanTakeoutInterface {
   }
 
   public static void accountOrCash(Connection conn, Customer customer, Location location, Teller teller,
-      BackMethod amount_back_method, double loan_amount) {
+      LoanTakeoutBackMethod amount_back_method, double loan_amount) {
     List<Account> accounts = customer.selectAccounts(conn);
     if (accounts == null) {
       System.out.println("Error finding your accounts");
@@ -139,11 +130,11 @@ public class LoanTakeoutInterface {
       if (loan_amount > 100000) {
         // Colatoral required
         getColatoral(conn, customer, location, teller, amount_back_method, loan_amount, accounts, null, null,
-            BackMethod.LOAN_AMOUNT);
+            LoanTakeoutBackMethod.LOAN_AMOUNT);
       } else {
         // Colatoral customers choice
         hasColatoral(conn, customer, location, teller, amount_back_method, loan_amount, accounts, null,
-            BackMethod.LOAN_AMOUNT);
+            LoanTakeoutBackMethod.LOAN_AMOUNT);
       }
     } else {
       String choice = Input.prompt("Would you like to receive you money in a check or in one of your accounts with us",
@@ -156,11 +147,11 @@ public class LoanTakeoutInterface {
         if (loan_amount > 100000) {
           // Colatoral required
           getColatoral(conn, customer, location, teller, amount_back_method, loan_amount, accounts, null, null,
-              BackMethod.ACCOUNT_OR_CASH);
+              LoanTakeoutBackMethod.ACCOUNT_OR_CASH);
         } else {
           // Colatoral customers choice
           hasColatoral(conn, customer, location, teller, amount_back_method, loan_amount, accounts, null,
-              BackMethod.ACCOUNT_OR_CASH);
+              LoanTakeoutBackMethod.ACCOUNT_OR_CASH);
         }
       } else {
         whichAccount(conn, customer, location, teller, amount_back_method, loan_amount, accounts);
@@ -169,7 +160,7 @@ public class LoanTakeoutInterface {
   }
 
   public static void whichAccount(Connection conn, Customer customer, Location location, Teller teller,
-      BackMethod amount_back_method, double loan_amount, List<Account> accounts) {
+      LoanTakeoutBackMethod amount_back_method, double loan_amount, List<Account> accounts) {
     if (accounts.size() > 1) {
       Account account = Input.prompt("Which account?", accounts.toArray(new Account[0]));
       if (Input.isBackSet()) {
@@ -180,24 +171,24 @@ public class LoanTakeoutInterface {
         if (loan_amount > 100000) {
           // Colatoral required
           getColatoral(conn, customer, location, teller, amount_back_method, loan_amount, accounts, account, null,
-              BackMethod.WHICH_ACCOUNT);
+              LoanTakeoutBackMethod.WHICH_ACCOUNT);
         } else {
           // Colatoral customers choice
           hasColatoral(conn, customer, location, teller, amount_back_method, loan_amount, accounts, account,
-              BackMethod.WHICH_ACCOUNT);
+              LoanTakeoutBackMethod.WHICH_ACCOUNT);
         }
       }
     } else {
       System.out.println(
           "You must intend to use this account: " + accounts.get(0).toString() + ". Its the only one you have");
       hasColatoral(conn, customer, location, teller, amount_back_method, loan_amount, accounts, accounts.get(0),
-          BackMethod.ACCOUNT_OR_CASH);
+          LoanTakeoutBackMethod.ACCOUNT_OR_CASH);
     }
   }
 
   public static void hasColatoral(Connection conn, Customer customer, Location location, Teller teller,
-      BackMethod amount_back_method, double loan_amount, List<Account> accounts, Account account,
-      BackMethod has_colatoral_back_method) {
+      LoanTakeoutBackMethod amount_back_method, double loan_amount, List<Account> accounts, Account account,
+      LoanTakeoutBackMethod has_colatoral_back_method) {
     Boolean hasColatoral = Input.promptBoolean(
         "Would you like to have colatoral to lower your interest rate? You are not required with that size of a loan");
     if (Input.isBackSet()) {
@@ -208,17 +199,17 @@ public class LoanTakeoutInterface {
     } else if (hasColatoral) {
       // If the customer decided to have colatoral.
       getColatoral(conn, customer, location, teller, amount_back_method, loan_amount, accounts, account,
-          has_colatoral_back_method, BackMethod.HAS_COLATORAL);
+          has_colatoral_back_method, LoanTakeoutBackMethod.HAS_COLATORAL);
     } else {
       // If the customer doesn't want colatoral.
       agreeToTerms(conn, customer, location, teller, amount_back_method, loan_amount, accounts, account, null,
-          has_colatoral_back_method, BackMethod.HAS_COLATORAL);
+          has_colatoral_back_method, LoanTakeoutBackMethod.HAS_COLATORAL);
     }
   }
 
   public static void getColatoral(Connection conn, Customer customer, Location location, Teller teller,
-      BackMethod amount_back_method, double loan_amount, List<Account> accounts, Account account,
-      BackMethod has_colatoral_back_method, BackMethod back_method) {
+      LoanTakeoutBackMethod amount_back_method, double loan_amount, List<Account> accounts, Account account,
+      LoanTakeoutBackMethod has_colatoral_back_method, LoanTakeoutBackMethod back_method) {
     String colatoral = Input.promptCustomString("What is your colatoral (must be less than 61 characters): ",
         (input) -> input.length() <= 60);
     if (Input.isBackSet()) {
@@ -233,13 +224,13 @@ public class LoanTakeoutInterface {
         System.out.println("Oh goody its a beet farm!");
       }
       agreeToTerms(conn, customer, location, teller, amount_back_method, loan_amount, accounts, account, colatoral,
-          has_colatoral_back_method, BackMethod.GET_COLATORAL);
+          has_colatoral_back_method, LoanTakeoutBackMethod.GET_COLATORAL);
     }
   }
 
   public static void agreeToTerms(Connection conn, Customer customer, Location location, Teller teller,
-      BackMethod amount_back_method, double loan_amount, List<Account> accounts, Account account, String colatoral,
-      BackMethod has_colatoral_back_method, BackMethod back_method) {
+      LoanTakeoutBackMethod amount_back_method, double loan_amount, List<Account> accounts, Account account,
+      String colatoral, LoanTakeoutBackMethod has_colatoral_back_method, LoanTakeoutBackMethod back_method) {
     // loanholder id, loan interest rate (determined by math?),
     // * amount loaned (amount due = amount loaned), monthly payment (likely percent
     // * of amount loaned), and colatoral (may not exist)
@@ -319,8 +310,9 @@ public class LoanTakeoutInterface {
   }
 
   public static void promptSignature(Connection conn, Customer customer, Location location, Teller teller,
-      BackMethod amount_back_method, double loan_amount, List<Account> accounts, Account account, String colatoral,
-      BackMethod has_colatoral_back_method, BackMethod back_method, double interest_rate, double monthly_payment) {
+      LoanTakeoutBackMethod amount_back_method, double loan_amount, List<Account> accounts, Account account,
+      String colatoral, LoanTakeoutBackMethod has_colatoral_back_method, LoanTakeoutBackMethod back_method,
+      double interest_rate, double monthly_payment) {
     // This is legally binding (Section 3.2B of Contract Law states that if a person
     // agrees to a loan with an imaginary bank with no actual contract then the
     // terms are legally binding and must be followed through on by both sides)
@@ -367,7 +359,7 @@ public class LoanTakeoutInterface {
   }
 
   public static void resetInterface(Connection conn, Customer customer, Location location, Teller teller,
-      BackMethod amount_back_method) {
+      LoanTakeoutBackMethod amount_back_method) {
     Boolean differentLoan = Input.promptBoolean("Would you like to take out a different loan (back/quit will quit)?");
     if (Input.isBackSet() || Input.isQuitSet() || !differentLoan) {
       return;
@@ -376,9 +368,10 @@ public class LoanTakeoutInterface {
     }
   }
 
-  public static void goBack(BackMethod used_back_method, Connection conn, Customer customer, Location location,
-      Teller teller, BackMethod amount_back_method, Double loan_amount, List<Account> accounts, Account account,
-      BackMethod has_colatoral_back_method, BackMethod back_method) {
+  public static void goBack(LoanTakeoutBackMethod used_back_method, Connection conn, Customer customer,
+      Location location, Teller teller, LoanTakeoutBackMethod amount_back_method, Double loan_amount,
+      List<Account> accounts, Account account, LoanTakeoutBackMethod has_colatoral_back_method,
+      LoanTakeoutBackMethod back_method) {
     switch (used_back_method) {
     case ACCOUNT_OR_CASH:
       accountOrCash(conn, customer, location, teller, amount_back_method, loan_amount);

@@ -86,11 +86,7 @@ public class Input {
         "No customers found with names like that");
   }
 
-  public interface CustomCondition {
-    public boolean isValidInput(String input);
-  }
-
-  public static String promptCustomString(String text, CustomCondition condition) {
+  public static String promptCustomString(String text, CustomInputCondition condition) {
     quitSet = false;
     backSet = false;
 

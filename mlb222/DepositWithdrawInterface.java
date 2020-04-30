@@ -30,15 +30,6 @@ import mlb222.utilities.Input;
  */
 public class DepositWithdrawInterface {
 
-  // All this back functionality would be so much easier to implement if
-  // java supported pointers to functions. And more fun too!
-  // Now I have to do something gross like this instead. Eww.
-  // I'm usually a fan of enums too (they have some neato functionality)
-  // but I just dislike this.
-  private enum BackMethod {
-    PROMPT_LOCATION, PROMPT_TELLER, PROMPT_WITHDRAW_DEPOSIT
-  }
-
   public static void run(Connection conn) {
     System.out.println(
         "Welcome to the deposit/withdrawal interface! At any time you can type quit to quit the interface and back to go back.");
@@ -109,7 +100,8 @@ public class DepositWithdrawInterface {
       promptLocation(conn, customer, account);
     } else if (compatible_tellers.size() == 1) {
       System.out.println("Your location only has an ATM which only supports withdrawals");
-      accountWithdraw(conn, customer, account, location, compatible_tellers.get(0), BackMethod.PROMPT_LOCATION);
+      accountWithdraw(conn, customer, account, location, compatible_tellers.get(0),
+          DepositWithdrawBackMethod.PROMPT_LOCATION);
     } else {
       Teller teller = Input.prompt("Which teller are you working with?", compatible_tellers.toArray(new Teller[0]));
       if (Input.isBackSet()) {
@@ -119,7 +111,7 @@ public class DepositWithdrawInterface {
       } else {
         if (teller.isAtm()) {
           System.out.println("ATMS only support withdrawals");
-          accountWithdraw(conn, customer, account, location, teller, BackMethod.PROMPT_TELLER);
+          accountWithdraw(conn, customer, account, location, teller, DepositWithdrawBackMethod.PROMPT_TELLER);
         } else {
           promptWithdrawOrDeposit(conn, customer, account, location, teller);
         }
@@ -138,7 +130,7 @@ public class DepositWithdrawInterface {
     } else if (Input.isQuitSet()) {
       return;
     } else if (action_choice.equals("Withdraw")) {
-      accountWithdraw(conn, customer, account, location, teller, BackMethod.PROMPT_WITHDRAW_DEPOSIT);
+      accountWithdraw(conn, customer, account, location, teller, DepositWithdrawBackMethod.PROMPT_WITHDRAW_DEPOSIT);
     } else if (action_choice.equals("Deposit")) {
       accountDeposit(conn, customer, account, location, teller);
     } else if (action_choice.equals("Transfer")) {
@@ -207,7 +199,7 @@ public class DepositWithdrawInterface {
   }
 
   public static void accountWithdraw(Connection conn, Customer customer, Account account, Location location,
-      Teller teller, BackMethod back_method) {
+      Teller teller, DepositWithdrawBackMethod back_method) {
     if (account instanceof CheckingAccount) {
       System.out.println("You currently have $" + account.getBalance() + " in your account (Minimum Balance: $"
           + ((CheckingAccount) account).getMinimumBalance() + ", Penalty: $" + ((CheckingAccount) account).getPenalty()
@@ -257,8 +249,10 @@ public class DepositWithdrawInterface {
     }
   }
 
-  public static void anotherTransaction(Connection conn, Customer customer, Account account, Location location, Teller teller) {
-    Boolean another_transaction = Input.promptBoolean("Would you like to make another transaction on this account (back/quit will quit)?");
+  public static void anotherTransaction(Connection conn, Customer customer, Account account, Location location,
+      Teller teller) {
+    Boolean another_transaction = Input
+        .promptBoolean("Would you like to make another transaction on this account (back/quit will quit)?");
     if (Input.isBackSet() || Input.isQuitSet() || !another_transaction) {
       System.out.println("Thank you for transacting with Nickel Bank");
       return;
@@ -268,12 +262,12 @@ public class DepositWithdrawInterface {
   }
 
   private static void goBack(Connection conn, Customer customer, Account account, Location location, Teller teller,
-      BackMethod back_method) {
-    if (back_method == BackMethod.PROMPT_LOCATION) {
+      DepositWithdrawBackMethod back_method) {
+    if (back_method == DepositWithdrawBackMethod.PROMPT_LOCATION) {
       promptLocation(conn, customer, account);
-    } else if (back_method == BackMethod.PROMPT_TELLER) {
+    } else if (back_method == DepositWithdrawBackMethod.PROMPT_TELLER) {
       pathFromLocationTellers(conn, customer, account, location);
-    } else if (back_method == BackMethod.PROMPT_WITHDRAW_DEPOSIT) {
+    } else if (back_method == DepositWithdrawBackMethod.PROMPT_WITHDRAW_DEPOSIT) {
       promptWithdrawOrDeposit(conn, customer, account, location, teller);
     }
   }
