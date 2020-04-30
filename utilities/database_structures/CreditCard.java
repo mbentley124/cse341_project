@@ -52,8 +52,6 @@ public class CreditCard extends Card {
         return true;
       }
     } catch (SQLException e) {
-      // TODO
-      // e.printStackTrace();
     }
     return false;
   }
@@ -114,8 +112,6 @@ public class CreditCard extends Card {
       adjust_balance.execute();
       return true;
     } catch (SQLException e) {
-      // TODO
-      // e.printStackTrace();
       return false;
     }
   }

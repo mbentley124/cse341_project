@@ -3,7 +3,6 @@ import java.util.List;
 
 import utilities.ConnectionManager;
 import utilities.Input;
-import utilities.database_structures.Account;
 import utilities.database_structures.Card;
 import utilities.database_structures.CheckingAccount;
 import utilities.database_structures.CreditCard;
@@ -124,9 +123,8 @@ public class CardPurchaseInterface {
   }
 
   public static void promptTransactionCompletion(Connection conn, Customer customer) {
-    Boolean anotherPurchase = Input.promptBoolean("Would you like to make another purchase?");
+    Boolean anotherPurchase = Input.promptBoolean("Would you like to make another purchase (back/quit to quit)?");
     if (Input.isBackSet() || Input.isQuitSet() || !anotherPurchase) {
-      // TODO maybe back should move the user to the previous screen?
       return;
     } else {
       promptCard(conn, customer);

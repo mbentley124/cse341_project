@@ -51,8 +51,6 @@ public class Location {
       dept_search.setLong(1, this.getLocId());
       tellers = ResultSetConverter.toTellers(dept_search.executeQuery());
     } catch (SQLException e) {
-      // TODO exit quietly.
-      // e.printStackTrace();
       return null;
     }
     return tellers;

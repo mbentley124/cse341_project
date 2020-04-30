@@ -49,7 +49,6 @@ public class ConnectionManager {
 
       customers = ResultSetConverter.toCustomers(search.executeQuery());
     } catch (SQLException e) {
-      // TODO exit quietly.
       return null;
     }
     return customers;
@@ -69,8 +68,6 @@ public class ConnectionManager {
 
       vendor_list = ResultSetConverter.toVendors(select.executeQuery());
     } catch (SQLException e) {
-      // TODO exit quietly
-      // e.printStackTrace();
       return null;
     }
     return vendor_list;
@@ -88,8 +85,6 @@ public class ConnectionManager {
     try (PreparedStatement dept_search = conn.prepareStatement("SELECT * FROM location")) {
       locations = ResultSetConverter.toLocations(dept_search.executeQuery());
     } catch (SQLException e) {
-      // TODO exit quietly.
-      // e.printStackTrace();
       return null;
     }
     return locations;
@@ -108,8 +103,6 @@ public class ConnectionManager {
         "SELECT UNIQUE loc_id, loc_name FROM location JOIN teller ON teller_loc_id = loc_id AND teller.is_atm = 0")) {
       locations = ResultSetConverter.toLocations(select.executeQuery());
     } catch (SQLException e) {
-      // TODO exit quietly.
-      // e.printStackTrace();
       return null;
     }
     return locations;
@@ -170,8 +163,6 @@ public class ConnectionManager {
         conn.rollback();
       }
     } catch (SQLException e) {
-      // TODO Auto-generated catch block
-      // e.printStackTrace();
     }
     return -1;
   }
@@ -210,8 +201,6 @@ public class ConnectionManager {
         return -1;
       }
     } catch (SQLException e) {
-      // TODO Auto-generated catch block
-      // e.printStackTrace();
       return -1;
     }
     return penalty;
@@ -386,8 +375,6 @@ public class ConnectionManager {
         return -1;
       }
     } catch (SQLException e) {
-      // TODO Auto-generated catch block
-      // e.printStackTrace();
       return -1;
     }
 

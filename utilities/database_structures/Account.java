@@ -92,8 +92,6 @@ public abstract class Account {
       adjust_balance.execute();
       return true;
     } catch (SQLException e) {
-      // TODO
-      // e.printStackTrace();
       return false;
     }
   }

@@ -31,8 +31,6 @@ public class SavingsAccount extends Account {
         return true;
       }
     } catch (SQLException e) {
-      // TODO
-      // e.printStackTrace();
     }
     return false;
   }

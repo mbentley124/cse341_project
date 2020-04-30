@@ -52,8 +52,6 @@ public class CheckingAccount extends Account {
         return true;
       }
     } catch (SQLException e) {
-      // TODO
-      // e.printStackTrace();
     }
     return false;
   }

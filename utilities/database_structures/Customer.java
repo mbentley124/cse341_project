@@ -43,8 +43,6 @@ public class Customer extends Person {
         return 0d;
       }
     } catch (SQLException e) {
-      // TODO
-      // e.printStackTrace();
     }
     return null;
   }
@@ -66,8 +64,6 @@ public class Customer extends Person {
         return 0d;
       }
     } catch (SQLException e) {
-      // TODO
-      // e.printStackTrace();
     }
     return null;
   }
@@ -85,8 +81,6 @@ public class Customer extends Person {
       select.setLong(1, this.getPId());
       cards = ResultSetConverter.toCards(select.executeQuery());
     } catch (SQLException e) {
-      // TODO exit quietly
-      // e.printStackTrace();
       return null;
     }
     return cards;
