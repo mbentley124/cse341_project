@@ -15,7 +15,7 @@ Michael Bentley
 
 Modified checking/savings account from the ER diagram. Moved minimum balance/penalty to checking account where it belongs. 
 
-At any time in an interface you can type back or quit to go back within the interface or quit the interface. If you type back after deciding to take out another loan/card purchase it will take you back to the input typically before that one. This is intended since you can't go back from the expected back input (deciding to take out a new loan/card purchase) as that would require undoing previously agreed upon loans/purchases in the database. 
+At any time in an interface you can type back or quit to go back within the interface or quit the interface. Going back in an interface immediately after deciding to takeout another loan/purchase/account transaction will take you back to the input that came before your first time with that input prompt. 
 
 
 # Deposit/Withdrawal Interface (Interface 2)
@@ -33,7 +33,7 @@ Penlaties are automatically enforced for overdraft of the account.
 
 # Card Purchase Interface (Interface 7)
 
-Kevin Malone is a good person to use for this interface
+Kevin Malone is a good person to use for this interface (Has credit and debit cards)
 
 The options for vendors are: Vance Refridgeration, Dunder Mifflin, Michael Scott Paper Company, and Schrute Farms. 
 
