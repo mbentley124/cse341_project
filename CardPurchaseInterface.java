@@ -123,7 +123,7 @@ public class CardPurchaseInterface {
   }
 
   public static void promptTransactionCompletion(Connection conn, Customer customer) {
-    Boolean anotherPurchase = Input.promptBoolean("Would you like to make another purchase (back/quit to quit)?");
+    Boolean anotherPurchase = Input.promptBoolean("Would you like to make another purchase (back/quit will quit)?");
     if (Input.isBackSet() || Input.isQuitSet() || !anotherPurchase) {
       return;
     } else {

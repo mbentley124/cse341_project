@@ -366,7 +366,7 @@ public class LoanTakeoutInterface {
 
   public static void resetInterface(Connection conn, Customer customer, Location location, Teller teller,
       BackMethod amount_back_method) {
-    Boolean differentLoan = Input.promptBoolean("Would you like to take out a different loan (back/quit to quit)?");
+    Boolean differentLoan = Input.promptBoolean("Would you like to take out a different loan (back/quit will quit)?");
     if (Input.isBackSet() || Input.isQuitSet() || !differentLoan) {
       return;
     } else {
