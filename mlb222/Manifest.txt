@@ -1,2 +1,2 @@
-Main-class: Bank
+Main-class: mlb222/Bank
 Class-Path: ojdbc8.jar

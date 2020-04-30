@@ -5,7 +5,7 @@ JC = javac
 .java.class:
 	$(JC) $(JFLAGS) $*.java
 
-CLASSES = \
+SOURCES = \
 	mlb222/Bank.java \
 	mlb222/CardPurchaseInterface.java \
 	mlb222/DepositWithdrawInterface.java \
@@ -25,9 +25,14 @@ CLASSES = \
 	mlb222/utilities/database_structures/Teller.java \
 	mlb222/utilities/database_structures/Vendor.java \
 
+CLASSES = $(SOURCES:.java=.class)
+
 default: classes
 
-classes: $(CLASSES:.java=.class)
+classes: $(SOURCES:.java=.class)
+
+jar:
+	jar cfmv mlb222.jar mlb222/Manifest.txt $(CLASSES)
 
 clean:
 	find ./mlb222 -type f -name '*.class' -delete
