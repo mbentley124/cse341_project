@@ -6,6 +6,7 @@ import java.util.Scanner;
 
 import mlb222.utilities.database_structures.Customer;
 import mlb222.utilities.database_structures.Vendor;
+import mlb222.utilities.Search;
 
 public class Input {
 
@@ -35,12 +36,6 @@ public class Input {
       quitSet = true;
     }
     return out;
-  }
-
-  // I'm very pleased I have an excuse to use lambda expressions. They're very
-  // fun!
-  public interface Search<T> {
-    public List<T> find(String substring);
   }
 
   public static <T> T promptSearch(Search<T> search, String prompt_text, String empty_text) {

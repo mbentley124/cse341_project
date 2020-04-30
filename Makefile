@@ -12,6 +12,7 @@ SOURCES = \
 	mlb222/LoanTakeoutInterface.java \
 	mlb222/utilities/ResultSetConverter.java \
 	mlb222/utilities/Input.java \
+	mlb222/utilities/Search.java \
 	mlb222/utilities/ConnectionManager.java \
 	mlb222/utilities/database_structures/Account.java \
 	mlb222/utilities/database_structures/Card.java \
