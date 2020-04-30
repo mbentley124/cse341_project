@@ -2,7 +2,7 @@ Michael Bentley
 
 # General Information
 
-Compile using Makefile in root directory. 
+Compile using Makefile in root directory. Then can run using "java mlb222/Bank". Can also recreate jar file using "make jar"
 
 Modified checking/savings account from the ER diagram. Moved minimum balance/penalty to checking account where it belongs. 
 
