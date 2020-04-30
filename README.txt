@@ -1,16 +1,5 @@
 Michael Bentley
 
-
-1) Be concise and specific
-
-2) Don't ramble
-
-3) Highlight interesting parts of your project (if any)
-
-4) Explain things that were not accomplished as being future work
-
-5) Discuss how a user interacts with each interface
-
 # General Information
 
 Modified checking/savings account from the ER diagram. Moved minimum balance/penalty to checking account where it belongs. 
