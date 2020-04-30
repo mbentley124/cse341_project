@@ -35,7 +35,7 @@ default: classes
 
 classes: $(SOURCES:.java=.class)
 
-jar:
+jar: default
 	jar cfmv mlb222.jar mlb222/Manifest.txt $(CLASSES)
 
 clean:
