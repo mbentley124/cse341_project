@@ -24,7 +24,7 @@ Penlaties are automatically enforced for overdraft of the account.
 
 # Card Purchase Interface (Interface 7)
 
-Kevin Malone is a good person to use for this interface (Has credit and debit cards)
+Kevin Malone is a good person to use for this interface (Has credit and debit cards. His debit card is connected to his account 15 if you would like to modify his balance)
 
 The options for vendors are: Vance Refridgeration, Dunder Mifflin, Michael Scott Paper Company, and Schrute Farms. 
 
